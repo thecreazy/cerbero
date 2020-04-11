@@ -1,1 +1,1 @@
-!function(n){"function"==typeof define&&define.amd?define(n):n()}((function(){"use strict";window.location.href="google.com"}));
+!function(n){"function"==typeof define&&define.amd?define(n):n()}((function(){"use strict";window.location.href="https://google.com"}));
