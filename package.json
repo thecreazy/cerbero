@@ -1,0 +1,53 @@
+{
+  "name": "cerbero",
+  "version": "0.0.0",
+  "description": "Tracking your users interations ",
+  "main": "dist/cerbero.js",
+  "module": "dist/cerbero.esm.js",
+  "browser": "dist/cerbero.umd.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "release": "standard-version"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thecreazy/cerbero.git"
+  },
+  "keywords": [
+    "javascript",
+    "typescript",
+    "library",
+    "tracking"
+  ],
+  "author": "@thecreazy <canella_riccardo@icloud.com> (https://canellariccardo.it)",
+  "contributors": [
+    "@TheBous <thebous1993@gmail.com> ()"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thecreazy/cerbero/issues"
+  },
+  "homepage": "https://github.com/thecreazy/cerbero#readme",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@babel/core": "^7.9.0",
+    "typescript": "^3.8.3"
+  },
+  "devDependencies": {
+    "@babel/plugin-external-helpers": "^7.8.3",
+    "@babel/plugin-transform-destructuring": "^7.9.5",
+    "@babel/preset-env": "^7.9.5",
+    "rollup": "^2.6.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.3.0",
+    "rollup-plugin-typescript2": "^0.27.0",
+    "standard-version": "^7.1.0"
+  }
+}
