@@ -1,9 +1,15 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint-config-airbnb-base"
-    ],
-    "jsRules": {},
-    "rules": {},
-    "rulesDirectory": []
+  "defaultSeverity": "error",
+  "extends": ["tslint-config-airbnb-base"],
+  "jsRules": {},
+  "rules": {
+    "indent": [true, "spaces", 2],
+    "prefer-const": [
+      true,
+      {
+        "destructuring": "any"
+      }
+    ]
+  },
+  "rulesDirectory": []
 }
