@@ -6,9 +6,9 @@ class Cerbero {
   private cerberoWorker: Worker;
 
   constructor() {
-      if (typeof Worker === 'undefined') return null;
-      this.cerberoWorker = new WebWorker();
-    }
+    if (typeof Worker === 'undefined') return null;
+    this.cerberoWorker = new WebWorker();
+  }
 }
 
-export default new Cerbero;
+export default new Cerbero();
