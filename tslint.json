@@ -4,6 +4,7 @@
   "jsRules": {},
   "rules": {
     "indent": [true, "spaces", 2],
+    "no-console": false,
     "prefer-const": [
       true,
       {
