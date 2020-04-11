@@ -15,7 +15,8 @@
     "dev:watch": "rollup -c rollup.config.js -w",
     "dev:serve": "http-server ./docs -p 3000",
     "prepublish": "npm run build",
-    "release": "standard-version"
+    "release": "standard-version",
+    "commit": "npx git-cz"
   },
   "husky": {
     "hooks": {
@@ -52,7 +53,9 @@
     "@babel/plugin-external-helpers": "^7.8.3",
     "@babel/plugin-transform-destructuring": "^7.9.5",
     "@babel/preset-env": "^7.9.5",
+    "commitizen": "^4.0.4",
     "concurrently": "^5.1.0",
+    "cz-conventional-changelog": "3.1.0",
     "http-server": "^0.12.1",
     "husky": "^4.2.5",
     "rollup": "^2.6.0",
@@ -65,5 +68,10 @@
     "standard-version": "^7.1.0",
     "tslint": "^6.1.1",
     "tslint-config-airbnb-base": "^0.3.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
