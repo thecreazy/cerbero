@@ -15,7 +15,8 @@
     "dev:watch": "rollup -c rollup.config.js -w",
     "dev:serve": "http-server ./docs -p 3000",
     "prepublish": "npm run build",
-    "release": "standard-version"
+    "release": "standard-version",
+    "commit": "npx git-cz"
   },
   "husky": {
     "hooks": {
@@ -53,6 +54,7 @@
     "@babel/plugin-transform-destructuring": "^7.9.5",
     "@babel/preset-env": "^7.9.5",
     "concurrently": "^5.1.0",
+    "commitizen": "^4.0.4",
     "http-server": "^0.12.1",
     "husky": "^4.2.5",
     "rollup": "^2.6.0",
