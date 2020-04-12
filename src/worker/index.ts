@@ -1,15 +1,27 @@
 import { CerberoEventStructure, CerberoMessageStructure } from './index.d';
+import ClickService from '../services/Click';
 
 class MasterWorker {
+  private self: any;
+  private textDecoder: TextDecoder = new TextDecoder();
+
   constructor() {
-    self.addEventListener('message', this.onMessage.bind(this));
+    this.self = self;
+    this.self.addEventListener('message', this.onMessage.bind(this));
+    this.onMessage = this.onMessage.bind(this);
   }
 
-  onMessage = (e: CerberoMessageStructure) => {
+  private onMessage = (e: CerberoMessageStructure) => {
     const { data } : {data : CerberoEventStructure} = e;
     const { type, event } = data;
-    const textDecoder = new TextDecoder();
-    console.log(type, JSON.parse(textDecoder.decode(event)));
+    const eventDecoded = JSON.parse(this.textDecoder.decode(event));
+    switch(type) {
+      case 'click':{
+        const formatted = ClickService.formatEvent(e);
+        break;
+      }
+      default: break;
+    }
   }
 }
 

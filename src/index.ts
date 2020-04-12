@@ -3,12 +3,11 @@ import WebWorker from 'cerbero-worker:./worker/index.ts';
 
 class Cerbero {
   private cerberoWorker: Worker;
-  private textEncoder: any;
+  private textEncoder: TextEncoder = new TextEncoder();
 
   constructor() {
     if (typeof Worker === 'undefined') return null;
     this.cerberoWorker = new WebWorker();
-    this.textEncoder = new TextEncoder();
     this.initListener = this.initListener.bind(this);
     this.sendToWorker = this.sendToWorker.bind(this);
     this.formatEvent = this.formatEvent.bind(this);
