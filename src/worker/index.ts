@@ -1,4 +1,4 @@
-import { CerberoEventStructure, CerberoMessageStructure } from './index.d';
+import { CerberoEventStructure, CerberoMessageStructure, FormattedMessageStructure } from './index.d';
 import ClickService from '../services/Click';
 
 class MasterWorker {
@@ -15,13 +15,16 @@ class MasterWorker {
     const { data } : {data : CerberoEventStructure} = e;
     const { type, event } = data;
     const eventDecoded = JSON.parse(this.textDecoder.decode(event));
+    let formatted: FormattedMessageStructure;
     switch(type) {
       case 'click':{
-        const formatted = ClickService.formatEvent(e);
+        formatted = ClickService.formatEvent(eventDecoded);
         break;
       }
       default: break;
     }
+
+    if(formatted) postMessage(formatted, null);
   }
 }
 
