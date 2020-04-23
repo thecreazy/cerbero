@@ -4,6 +4,8 @@
   "jsRules": {},
   "rules": {
     "indent": [true, "spaces", 2],
+    "no-console": false,
+    "variable-name": false,
     "prefer-const": [
       true,
       {

@@ -5,8 +5,22 @@
 
 <body>
     <h1>Open the console and watch the magic</h1>
-    <img src="./logo.png" width="70%">
+    <img id="image" src="./logo.png" width="70%">
+    <div id="messagebox"></div>
     <script src="./cerbero.umd.js"></script>
+    <script>
+        const container = document.getElementById("messagebox");
+        let index = 0;
+        cerbero.addEventListner((event) => {
+            console.log(event);
+            const tag = document.createElement("p");
+            tag.id = "event" + index;
+            const text = document.createTextNode(JSON.stringify(event, null, 1));
+            tag.appendChild(text);
+            container.appendChild(tag);
+            index++;
+        })
+    </script>
 </body>
 
 </html>
