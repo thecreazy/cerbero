@@ -1,6 +1,7 @@
 // @ts-ignore
 import WebWorker from 'cerbero-worker:./worker/index.ts';
 import { formatEvent } from './utils/formatter';
+import SelectionObserver from './utils/selectionObserver';
 
 class Cerbero {
   private cerberoWorker: Worker;
@@ -15,7 +16,7 @@ class Cerbero {
     this._initListener = this._initListener.bind(this);
     this._sendToWorker = this._sendToWorker.bind(this);
     this._receiveWorkerMessage = this._receiveWorkerMessage.bind(this);
-    this._sendToWorker('performance', window.performance);
+    this._receiveSelectionEvent = this._receiveSelectionEvent.bind(this);
     this._initListener();
   }
 
@@ -35,7 +36,15 @@ class Cerbero {
     else throw new Error(`[Cerbero] no callback setted`);
   }
 
+  private _receiveSelectionEvent = (data) => {
+    this._sendToWorker('selection', {
+      event: formatEvent(data.event),
+      selection: data.text,
+    }, false);
+  }
+
   private _initListener = () => {
+    this._sendToWorker('performance', window.performance);
     document.addEventListener('click', e => this._sendToWorker('click', e));
     window.addEventListener('mouseout', (e: any) => {
       const from = e.toElement;
@@ -43,6 +52,7 @@ class Cerbero {
         this._sendToWorker('mouseexit', e);
       }
     });
+    const selectionObserver = new SelectionObserver(this._receiveSelectionEvent);
 
     this.cerberoWorker.onmessage = this._receiveWorkerMessage;
   }

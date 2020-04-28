@@ -1,4 +1,4 @@
-class Click {
+class MouseExit {
   static formatEvent = (event) => {
     const now = Date.now();
     const formatEvent = {
@@ -33,5 +33,5 @@ class Click {
   }
 }
 
-export default Click;
+export default MouseExit;
 
