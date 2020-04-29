@@ -2,7 +2,7 @@ class Click {
   static formatEvent = (event) => {
     const now = Date.now();
     const formatEvent = {
-      type: 'click',
+      type: 'mouseExit',
       time: now,
       after: now - event.startDate,
       data: {
@@ -25,7 +25,7 @@ class Click {
           metaKey: event.metaKey,
         },
         elements:{
-          target: event.target,
+          fromElement: event.fromElement,
         },
       },
     };
@@ -34,3 +34,4 @@ class Click {
 }
 
 export default Click;
+
