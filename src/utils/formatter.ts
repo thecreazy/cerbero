@@ -1,5 +1,5 @@
 
-import { NodeStructure } from '../index.d';
+import { NodeStructure, FormattedNodeStructure } from '../index.d';
 
 export const getDomNode = (element: NodeStructure) => {
   const { id,nodeName } = element;
@@ -15,16 +15,21 @@ export const _calculateDomStructure = (element: NodeStructure) => {
 
 export const formatNode = (element: NodeStructure) => {
   const { id, name, nodeName, constructor, className, getBoundingClientRect } = element;
-  return {
+  const formatted: FormattedNodeStructure = {
     id,
     name,
     className,
     type: nodeName,
-    domType: constructor.name,
+    domType: constructor.name || '',
     identifier: getDomNode(element),
     domStructure: _calculateDomStructure(element),
     position: getBoundingClientRect ? element.getBoundingClientRect() : {},
   };
+  if(element.data) formatted.data = element.data;
+  if(element.wholeText) formatted.wholeText = element.wholeText;
+  if(element.nodeValue) formatted.nodeValue = element.nodeValue;
+  if(element.textContent) formatted.textContent = element.textContent;
+  return formatted;
 };
 
 const formatMemoryInfo = (element) => {

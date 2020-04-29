@@ -1,7 +1,8 @@
 import { CerberoEventStructure, CerberoMessageStructure, FormattedMessageStructure } from './index.d';
 import ClickService from '../services/Click';
 import PerformanceService from '../services/Performance';
-import MouseExit from '../services/MouseExit';
+import MouseExitService from '../services/MouseExit';
+import SelectionService from '../services/Selection';
 
 class MasterWorker {
   private self: any;
@@ -28,7 +29,11 @@ class MasterWorker {
         break;
       }
       case 'mouseexit': {
-        formatted = MouseExit.formatEvent(eventDecoded);
+        formatted = MouseExitService.formatEvent(eventDecoded);
+        break;
+      }
+      case 'selection': {
+        formatted = SelectionService.formatEvent(eventDecoded);
         break;
       }
       default: break;
