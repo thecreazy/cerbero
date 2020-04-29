@@ -3,10 +3,12 @@ import WebWorker from 'cerbero-worker:./worker/index.ts';
 import { formatEvent } from './utils/formatter';
 import SelectionObserver from './utils/selectionObserver';
 
+const SCROLLING_TIMEOUT = 100;
 class Cerbero {
   private cerberoWorker: Worker;
   private textEncoder: TextEncoder = new TextEncoder();
   private startDate: number;
+  private isScrolling: any;
   private cb: Function;
 
   constructor() {
@@ -43,16 +45,33 @@ class Cerbero {
     }, false);
   }
 
+  private _receiveScrollEvent = (event) => {
+    const { body, documentElement : html } = document;
+    window.clearTimeout(this.isScrolling);
+    this.isScrolling = setTimeout(() => {
+      const height = Math.max(body.scrollHeight, body.offsetHeight,
+        html.clientHeight, html.scrollHeight, html.offsetHeight);
+      this._sendToWorker('scroll', {
+        event: formatEvent(event),
+        height,
+        scroll: window.scrollY || window.pageYOffset,
+      }, false);
+    }, SCROLLING_TIMEOUT);
+  }
+
+  private _receiveMouseOutEvent = (event: any) => {
+    const from = event.toElement;
+    if ((!from || from.nodeName === 'HTML') && event.fromElement.nodeName !== 'HTML'){
+      this._sendToWorker('mouseexit', event);
+    }
+  }
+
   private _initListener = () => {
     this._sendToWorker('performance', window.performance);
     document.addEventListener('click', e => this._sendToWorker('click', e));
-    window.addEventListener('mouseout', (e: any) => {
-      const from = e.toElement;
-      if ((!from || from.nodeName === 'HTML') && e.fromElement.nodeName !== 'HTML'){
-        this._sendToWorker('mouseexit', e);
-      }
-    });
+    window.addEventListener('mouseout', this._receiveMouseOutEvent, false);
     const selectionObserver = new SelectionObserver(this._receiveSelectionEvent);
+    window.addEventListener('scroll', this._receiveScrollEvent, false);
 
     this.cerberoWorker.onmessage = this._receiveWorkerMessage;
   }

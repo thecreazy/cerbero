@@ -3,10 +3,18 @@ import ClickService from '../services/Click';
 import PerformanceService from '../services/Performance';
 import MouseExitService from '../services/MouseExit';
 import SelectionService from '../services/Selection';
+import ScrollService from '../services/Scroll';
 
 class MasterWorker {
   private self: any;
   private textDecoder: TextDecoder = new TextDecoder();
+  private formatters = {
+    click: ClickService,
+    performance: PerformanceService,
+    mouseexit: MouseExitService,
+    selection: SelectionService,
+    scroll: ScrollService,
+  };
 
   constructor() {
     this.self = self;
@@ -19,26 +27,7 @@ class MasterWorker {
     const { type, event } = data;
     const eventDecoded = JSON.parse(this.textDecoder.decode(event));
     let formatted: FormattedMessageStructure;
-    switch(type) {
-      case 'click':{
-        formatted = ClickService.formatEvent(eventDecoded);
-        break;
-      }
-      case 'performance': {
-        formatted = PerformanceService.formatEvent(eventDecoded);
-        break;
-      }
-      case 'mouseexit': {
-        formatted = MouseExitService.formatEvent(eventDecoded);
-        break;
-      }
-      case 'selection': {
-        formatted = SelectionService.formatEvent(eventDecoded);
-        break;
-      }
-      default: break;
-    }
-
+    if(this.formatters[type]) formatted = this.formatters[type].formatEvent(eventDecoded);
     if(formatted) postMessage(formatted, null);
   }
 }

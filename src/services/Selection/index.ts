@@ -14,8 +14,8 @@ class Selection {
       type: 'selection',
       time: now,
       after: now - data.startDate,
-      text: data.selection,
       data: {
+        text: data.selection,
         elements:{
           anchorNode,
           focusNode,
