@@ -18,7 +18,8 @@ const plugins = [
   }),
   webWorkerLoader({
     pattern: /cerbero-worker:(.+)/,
-    inline: false
+    inline: true,
+    targetPlatform: 'browser'
   }),
   commonjs(),
   terser()
