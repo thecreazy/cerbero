@@ -32,7 +32,7 @@ export const formatNode = (element: NodeStructure) => {
   return formatted;
 };
 
-const formatMemoryInfo = (element) => {
+const formatMemoryInfo = (element: any) => {
   const { totalJSHeapSize, usedJSHeapSize, jsHeapSizeLimit } = element;
   return {
     totalJSHeapSize,
@@ -44,11 +44,12 @@ const formatMemoryInfo = (element) => {
 
 export const formatEvent = (e: any) => {
   const obj: any = {};
+  const { InputDeviceCapabilities } = window as any;
   for (const key in e) {
     if(e[key] && e[key].constructor.name === 'MemoryInfo') obj[key] = formatMemoryInfo(e[key]);
     else if (e[key] instanceof Node) obj[key] = formatNode(e[key]);
     else if (e[key] instanceof Window) obj[key] = 'Window';
-    else if(e[key] instanceof window['InputDeviceCapabilities'] === false && typeof e[key] !== 'function') obj[key] = e[key];
+    else if(e[key] instanceof InputDeviceCapabilities === false && typeof e[key] !== 'function') obj[key] = e[key];
   }
   obj['path'] = null;
   return { ...obj };

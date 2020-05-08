@@ -5,3 +5,7 @@ package-lock.json
 yarn.lock
 .idea
 .vscode
+docs/services
+docs/utils
+docs/worker
+docs/*.d.ts

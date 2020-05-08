@@ -1,10 +1,16 @@
 const DEFAULT_OBSERVER_TIME = 2000;
 
+type selectionDefinition = {
+  event: any;
+  text: string;
+}
+
+type callbackDefinition = (_: selectionDefinition) => void;
 export default class SelectionObserver {
-  private cb = _ => null;
+  private cb: callbackDefinition = (_:selectionDefinition) => null;
   private selection = '';
 
-  constructor(cb) {
+  constructor(cb: callbackDefinition) {
     this.cb = cb;
     this.observerValue = this.observerValue.bind(this);
     setInterval(this.observerValue, DEFAULT_OBSERVER_TIME);

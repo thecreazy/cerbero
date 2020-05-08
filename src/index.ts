@@ -33,19 +33,19 @@ class Cerbero {
     this.cerberoWorker.postMessage({ type, event: finalEvent });
   }
 
-  private _receiveWorkerMessage = (event) => {
+  private _receiveWorkerMessage = (event: any) => {
     if(this.cb) this.cb.apply(null, [event.data]);
     else throw new Error(`[Cerbero] no callback setted`);
   }
 
-  private _receiveSelectionEvent = (data) => {
+  private _receiveSelectionEvent = (data: any) => {
     this._sendToWorker('selection', {
       event: formatEvent(data.event),
       selection: data.text,
     }, false);
   }
 
-  private _receiveScrollEvent = (event) => {
+  private _receiveScrollEvent = (event: any) => {
     const { body, documentElement : html } = document;
     window.clearTimeout(this.isScrolling);
     this.isScrolling = setTimeout(() => {
