@@ -16,7 +16,8 @@
     "dev:serve": "http-server ./docs -p 3000",
     "prepublish": "npm run build",
     "release": "standard-version",
-    "commit": "npx git-cz"
+    "commit": "npx git-cz",
+    "test": "jest"
   },
   "husky": {
     "hooks": {
@@ -53,11 +54,13 @@
     "@babel/plugin-external-helpers": "^7.8.3",
     "@babel/plugin-transform-destructuring": "^7.9.5",
     "@babel/preset-env": "^7.9.6",
+    "@types/jest": "^25.2.1",
     "commitizen": "^4.1.2",
     "concurrently": "^5.2.0",
     "cz-conventional-changelog": "3.2.0",
     "http-server": "^0.12.3",
     "husky": "^4.2.5",
+    "jest": "^26.0.1",
     "rollup": "^2.9.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -66,6 +69,7 @@
     "rollup-plugin-typescript2": "^0.27.0",
     "rollup-plugin-web-worker-loader": "^1.2.2",
     "standard-version": "^8.0.0",
+    "ts-jest": "^25.5.1",
     "tslint": "^6.1.2",
     "tslint-config-airbnb-base": "^0.3.0"
   },
@@ -73,5 +77,34 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "jest": {
+    "rootDir": "./",
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/",
+      "/dist"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    },
+    "collectCoverageFrom": [
+      "<rootDir>/src/**/*.{js,ts}"
+    ]
   }
 }

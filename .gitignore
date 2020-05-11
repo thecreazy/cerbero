@@ -9,3 +9,4 @@ docs/services
 docs/utils
 docs/worker
 docs/*.d.ts
+coverage

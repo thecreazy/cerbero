@@ -3,7 +3,7 @@ const DEFAULT_OBSERVER_TIME = 2000;
 type selectionDefinition = {
   event: any;
   text: string;
-}
+};
 
 type callbackDefinition = (_: selectionDefinition) => void;
 export default class SelectionObserver {
