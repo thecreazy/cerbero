@@ -1,0 +1,3 @@
+export default JSON.parse(`
+{"event":{"isTrusted":true,"NONE":0,"CAPTURING_PHASE":1,"AT_TARGET":2,"BUBBLING_PHASE":3,"type":"scroll","target":{"type":"#document","domType":"HTMLDocument","identifier":"#document","domStructure":" > #document","position":{}},"currentTarget":null,"eventPhase":0,"bubbles":true,"cancelable":false,"defaultPrevented":false,"composed":false,"timeStamp":4531.274999957532,"srcElement":{"type":"#document","domType":"HTMLDocument","identifier":"#document","domStructure":" > #document","position":{}},"returnValue":true,"cancelBubble":false,"path":null},"height":10693,"scroll":2694,"startDate":1589182756680}
+`);

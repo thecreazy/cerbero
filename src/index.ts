@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 // @ts-ignore
 import WebWorker from 'cerbero-worker:./worker/index.ts';
 import { formatEvent } from './utils/formatter';

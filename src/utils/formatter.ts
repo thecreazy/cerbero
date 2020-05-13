@@ -6,9 +6,9 @@ export const getDomNode = (element: NodeStructure) => {
   return `${nodeName.toLowerCase()}${id? `#${id}`: ''}`;
 };
 
-export const _calculateDomStructure = (element: NodeStructure) => {
+export const calculateDomStructure = (element: NodeStructure) => {
   let prevElment: string = '';
-  if(element.parentElement) prevElment = _calculateDomStructure(element.parentElement);
+  if(element.parentElement) prevElment = calculateDomStructure(element.parentElement);
   return `${prevElment} > ${getDomNode(element)}`;
 };
 
@@ -22,7 +22,7 @@ export const formatNode = (element: NodeStructure) => {
     type: nodeName,
     domType: constructor.name || '',
     identifier: getDomNode(element),
-    domStructure: _calculateDomStructure(element),
+    domStructure: calculateDomStructure(element),
     position: getBoundingClientRect ? element.getBoundingClientRect() : {},
   };
   if(element.data) formatted.data = element.data;
@@ -32,7 +32,7 @@ export const formatNode = (element: NodeStructure) => {
   return formatted;
 };
 
-const formatMemoryInfo = (element: any) => {
+export const formatMemoryInfo = (element: any) => {
   const { totalJSHeapSize, usedJSHeapSize, jsHeapSizeLimit } = element;
   return {
     totalJSHeapSize,
@@ -44,12 +44,12 @@ const formatMemoryInfo = (element: any) => {
 
 export const formatEvent = (e: any) => {
   const obj: any = {};
-  const { InputDeviceCapabilities } = window as any;
+  const { InputDeviceCapabilities = Window } = window as any;
   for (const key in e) {
     if(e[key] && e[key].constructor.name === 'MemoryInfo') obj[key] = formatMemoryInfo(e[key]);
     else if (e[key] instanceof Node) obj[key] = formatNode(e[key]);
     else if (e[key] instanceof Window) obj[key] = 'Window';
-    else if(e[key] instanceof InputDeviceCapabilities === false && typeof e[key] !== 'function') obj[key] = e[key];
+    else if (e[key] instanceof InputDeviceCapabilities === false && typeof e[key] !== 'function') obj[key] = e[key];
   }
   obj['path'] = null;
   return { ...obj };
