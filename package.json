@@ -17,7 +17,7 @@
     "prepublish": "npm run build",
     "release": "standard-version",
     "commit": "npx git-cz",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "husky": {
     "hooks": {
@@ -61,6 +61,7 @@
     "http-server": "^0.12.3",
     "husky": "^4.2.5",
     "jest": "^26.0.1",
+    "jsdom": "^16.2.2",
     "rollup": "^2.10.0",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -83,7 +84,7 @@
     "transform": {
       ".(ts|tsx)": "ts-jest"
     },
-    "testEnvironment": "node",
+    "testEnvironment": "jsdom",
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
     "moduleFileExtensions": [
       "ts",
@@ -97,10 +98,10 @@
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 90,
-        "functions": 90,
-        "lines": 90,
-        "statements": 90
+        "branches": 65,
+        "functions": 75,
+        "lines": 75,
+        "statements": 75
       }
     },
     "collectCoverageFrom": [

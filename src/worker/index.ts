@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { CerberoEventStructure, CerberoMessageStructure, FormattedMessageStructure } from './index.d';
 import ClickService from '../services/Click';
 import PerformanceService from '../services/Performance';

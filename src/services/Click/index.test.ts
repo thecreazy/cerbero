@@ -1,7 +1,7 @@
 import Click from './index';
 import event from './__test__/index';
 
-test('[Click Service] Testing base readingTime', () => {
+test('[Click Service] Testing base', () => {
   const clickEvent = Click.formatEvent(event);
   expect(clickEvent).toEqual({
     type: 'click',
