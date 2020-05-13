@@ -1,0 +1,3 @@
+export default JSON.parse(`
+{"type":"mouseExit","time":1589181911447,"after":254387,"data":{"position":{"screenX":895,"screenY":474,"clientX":895,"clientY":395,"pageX":895,"pageY":395,"x":895,"y":395,"offsetX":283,"offsetY":96},"keys":{"ctrlKey":false,"shiftKey":false,"altKey":false,"metaKey":false},"elements":{"fromElement":{"id":"","className":"","type":"DIV","domType":"HTMLDivElement","identifier":"div","domStructure":" > html > body > div#root > div > article > div > section > div > div > div","position":{"x":612.5,"y":299.1875,"width":680,"height":165.203125,"top":299.1875,"right":1292.5,"bottom":464.390625,"left":612.5},"textContent":"How you can improve your workflow using the JavaScript consoleRiccardo CanellaJun 11, 2018 · 5 min read"}}}}
+`);

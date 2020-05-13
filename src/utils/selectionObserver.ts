@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 const DEFAULT_OBSERVER_TIME = 2000;
 
 type selectionDefinition = {
