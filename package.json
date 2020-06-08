@@ -62,7 +62,7 @@
     "husky": "^4.2.5",
     "jest": "^26.0.1",
     "jsdom": "^16.2.2",
-    "rollup": "^2.10.1",
+    "rollup": "^2.14.0",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
