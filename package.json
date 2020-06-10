@@ -48,7 +48,7 @@
   ],
   "dependencies": {
     "@babel/core": "^7.9.6",
-    "typescript": "^3.9.2"
+    "typescript": "^3.9.5"
   },
   "devDependencies": {
     "@babel/plugin-external-helpers": "^7.8.3",
