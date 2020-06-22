@@ -47,7 +47,7 @@
     "dist"
   ],
   "dependencies": {
-    "@babel/core": "^7.9.6",
+    "@babel/core": "^7.10.3",
     "typescript": "^3.9.5"
   },
   "devDependencies": {
