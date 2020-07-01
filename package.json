@@ -51,7 +51,7 @@
     "typescript": "^3.9.5"
   },
   "devDependencies": {
-    "@babel/plugin-external-helpers": "^7.8.3",
+    "@babel/plugin-external-helpers": "^7.10.4",
     "@babel/plugin-transform-destructuring": "^7.9.5",
     "@babel/preset-env": "^7.9.6",
     "@types/jest": "^25.2.2",
