@@ -1,8 +1,10 @@
+import COSTANTS from "../../constants";
+
 class MouseExit {
   static formatEvent = (event) => {
     const now = Date.now();
     const formatEvent = {
-      type: 'mouseExit',
+      type: COSTANTS.events.mouseExit,
       time: now,
       after: now - event.startDate,
       data: {

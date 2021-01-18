@@ -1,11 +1,13 @@
-const TOTAL = 100;
+import COSTANTS from "../../constants";
+
+const TOTAL: number = 100;
 
 class Scroll {
   static formatEvent = (data) => {
     const { event, scroll, height, startDate } = data;
     const now = Date.now();
     const formatEvent = {
-      type: 'scroll',
+      type: COSTANTS.events.scroll,
       time: now,
       after: now - startDate,
       data: {

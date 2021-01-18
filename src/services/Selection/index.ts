@@ -1,3 +1,5 @@
+import COSTANTS from "../../constants";
+
 class Selection {
   static formatEvent = (data) => {
     const now = Date.now();
@@ -11,7 +13,7 @@ class Selection {
     baseNode.offset = baseOffset;
     extentNode.offset = extentOffset;
     const formatEvent = {
-      type: 'selection',
+      type: COSTANTS.events.selection,
       time: now,
       after: now - data.startDate,
       data: {
