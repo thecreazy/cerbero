@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.2](https://github.com/thecreazy/cerbero/compare/v0.0.1...v0.0.2) (2021-01-18)
+
+
+### Features
+
+* **docs:** no docs in stringify ([41c9086](https://github.com/thecreazy/cerbero/commit/41c9086fd77df8284b7106b9c3b254e1e450704d))
+
 ### 0.0.1 (2021-01-18)
 
 
