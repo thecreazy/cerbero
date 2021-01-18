@@ -6,16 +6,19 @@ import PerformanceService from '../services/Performance';
 import MouseExitService from '../services/MouseExit';
 import SelectionService from '../services/Selection';
 import ScrollService from '../services/Scroll';
+import TimeInPageService from '../services/TimeInPage';
+import COSTANTS from '../constants';
 
 class MasterWorker {
   private self: any;
   private textDecoder: TextDecoder = new TextDecoder();
   private formatters = {
-    click: ClickService,
-    performance: PerformanceService,
-    mouseexit: MouseExitService,
-    selection: SelectionService,
-    scroll: ScrollService,
+    [COSTANTS.events.click]: ClickService,
+    [COSTANTS.events.performance]: PerformanceService,
+    [COSTANTS.events.mouseExit]: MouseExitService,
+    [COSTANTS.events.selection]: SelectionService,
+    [COSTANTS.events.scroll]: ScrollService,
+    [COSTANTS.events.timeInPage]: TimeInPageService,
   };
 
   constructor() {

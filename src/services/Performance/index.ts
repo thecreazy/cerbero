@@ -1,7 +1,9 @@
-class Click {
+import COSTANTS from '../../constants/index';
+
+class Performance {
   static formatEvent = (event) => {
     const formatEvent = {
-      type: 'performance',
+      type: COSTANTS.events.performance,
       time: Date.now(),
       data: {
         timing: event.timing,
@@ -13,5 +15,5 @@ class Click {
   }
 }
 
-export default Click;
+export default Performance;
 

@@ -1,8 +1,10 @@
+import COSTANTS from '../../constants';
+
 class Click {
   static formatEvent = (event) => {
     const now = Date.now();
     const formatEvent = {
-      type: 'click',
+      type: COSTANTS.events.click,
       time: now,
       after: now - event.startDate,
       data: {
