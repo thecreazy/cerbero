@@ -1,4 +1,4 @@
-import COSTANTS from "../../constants";
+import COSTANTS from '../../constants';
 
 class MouseExit {
   static formatEvent = (event) => {

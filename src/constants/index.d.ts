@@ -6,8 +6,8 @@ interface COSTANTS {
     mouseExit: string;
     performance: string;
     click: string;
-  }
-  
+  };
+
 }
 
 export default COSTANTS;

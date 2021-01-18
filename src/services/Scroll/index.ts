@@ -1,4 +1,4 @@
-import COSTANTS from "../../constants";
+import COSTANTS from '../../constants';
 
 const TOTAL: number = 100;
 

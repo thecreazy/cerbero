@@ -6,7 +6,7 @@ import PerformanceService from '../services/Performance';
 import MouseExitService from '../services/MouseExit';
 import SelectionService from '../services/Selection';
 import ScrollService from '../services/Scroll';
-import TimeInPageService from "../services/TimeInPage";
+import TimeInPageService from '../services/TimeInPage';
 import COSTANTS from '../constants';
 
 class MasterWorker {

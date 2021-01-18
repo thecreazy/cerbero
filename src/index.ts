@@ -31,7 +31,7 @@ class Cerbero {
     this.cb = cb;
   }
 
-  setTimeInPageInterval  = (timeInPageIntervalTime: number) => {
+  setTimeInPageInterval = (timeInPageIntervalTime: number) => {
     this.timeInPageIntervalTime = timeInPageIntervalTime;
     clearInterval(this.timeInPageInterval);
     this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);
@@ -78,8 +78,11 @@ class Cerbero {
   }
 
   private _timeOnPage = () => {
-    console.log( {startTime: this.startDate, nowTime: Date.now()})
-    this._sendToWorker(COSTANTS.events.timeInPage, {startTime: this.startDate, nowTime: Date.now()});
+    console.log({ startTime: this.startDate, nowTime: Date.now() });
+    this._sendToWorker(COSTANTS.events.timeInPage, {
+      startTime: this.startDate,
+      nowTime: Date.now(),
+    });
   }
 
   private _initListener = () => {
@@ -89,7 +92,7 @@ class Cerbero {
     const _selectionObserver = new SelectionObserver(this._receiveSelectionEvent);
     window.addEventListener('scroll', this._receiveScrollEvent, false);
     this.cerberoWorker.onmessage = this._receiveWorkerMessage;
-    this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime)
+    this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);
   }
 }
 

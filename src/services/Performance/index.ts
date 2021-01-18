@@ -1,4 +1,4 @@
-import COSTANTS from "../../constants/index";
+import COSTANTS from '../../constants/index';
 
 class Performance {
   static formatEvent = (event) => {

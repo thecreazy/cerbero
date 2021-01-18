@@ -1,14 +1,14 @@
-import COSTANTSDEFINITION from "./index.d"
+import COSTANTSDEFINITION from './index.d';
 
 const COSTANTS: COSTANTSDEFINITION = {
   events: {
-    timeInPage: "timeInPage",
-    selection: "selection",
-    scroll: "scroll",
-    mouseExit: "mouseExit",
-    performance: "performance",
-    click: "click",
-  } 
-}
+    timeInPage: 'timeInPage',
+    selection: 'selection',
+    scroll: 'scroll',
+    mouseExit: 'mouseExit',
+    performance: 'performance',
+    click: 'click',
+  },
+};
 
-export default COSTANTS
+export default COSTANTS;
