@@ -13,6 +13,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: install
+      - name: Test code
+        uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: test
+      - name: Build code
+        uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: build
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
