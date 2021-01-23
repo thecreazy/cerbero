@@ -15,9 +15,12 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 13.7
+          always-auth: true
       - run: yarn install
       - run: yarn test
       - run: yarn build
+      - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - run: cat ~/.npmrc
       - run: yarn publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
