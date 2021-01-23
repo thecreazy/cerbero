@@ -44,15 +44,22 @@ export default [{
   {
     input: 'src/index.ts',
     external: ['ms'],
-    output: [{
-        file: pkg.main,
-        format: 'cjs',
-        exports: 'named',
-      },
+    output: [
       {
         file: pkg.module,
         format: 'es',
         exports: 'named'
+      }
+    ],
+    plugins
+  },
+  {
+    input: 'src/index.ts',
+    external: ['ms'],
+    output: [{
+        file: pkg.main,
+        format: 'cjs',
+        exports: 'named',
       }
     ],
     plugins
