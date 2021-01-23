@@ -6,14 +6,13 @@
   <br>
   [![npm][npm]][npm-url]
   <br>
-  [![codecov][codecov]][codecov-url] [![CI - Test][CI-test]][citest-url]
+  [![codecov][codecov]][repo-url] [![CI - Test][citest-test]][repo-url]
   <br>
    <h1>🐾 Cerbero</h1>
     <p>
     Cerbero is a
   </p>
 </div>
-===
 
 ## Table of Contents
 
@@ -34,6 +33,8 @@
 <h2 align="center" id="license">License</h2>
 
 
+[npm]: https://img.shields.io/npm/v/webpack.svg
 [npm-url]: https://npmjs.com/package/cerbero
-[codecov-url]: https://codecov.io/gh/thecreazy/cerbero/branch/master/graph/badge.svg?token=ZCLT8ZZ9RH
-[citest-url]: https://github.com/thecreazy/cerbero/workflows/CI%20-%20Test/badge.svg?branch=master
+[codecov]: https://codecov.io/gh/thecreazy/cerbero/branch/master/graph/badge.svg?token=ZCLT8ZZ9RH
+[repo-url]: https://github.com/thecreazy/cerbero
+[citest]: https://github.com/thecreazy/cerbero/workflows/CI%20-%20Test/badge.svg?branch=master

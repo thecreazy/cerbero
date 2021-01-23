@@ -11,6 +11,9 @@ import {
 const plugins = [
   typescript({
     typescript: require('typescript'),
+    tsconfig: './tsconfig.json',
+    useTsconfigDeclarationDir: true,
+    clean: true,
   }),
   resolve(),
   babel({
