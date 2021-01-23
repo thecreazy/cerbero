@@ -78,7 +78,6 @@ class Cerbero {
   }
 
   private _timeOnPage = () => {
-    console.log({ startTime: this.startDate, nowTime: Date.now() });
     this._sendToWorker(COSTANTS.events.timeInPage, {
       startTime: this.startDate,
       nowTime: Date.now(),
