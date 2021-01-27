@@ -12,7 +12,7 @@
 
 # 🐾 Cerbero 
 
-Cerbero is a simply js library that gives you the ability to track everything your users are doing on your web page. Furthermore, Cerbero, is designed to weigh as little as possible on the main thread by delegating the most complex computations to a webworker.
+Cerbero is a simple js library that gives you the ability to track everything your users are doing on your web page. Furthermore, Cerbero, is designed to weigh as little as possible on the main thread by delegating the most complex computations to a webworker.
 
 ## Table of Contents
 
