@@ -36,18 +36,18 @@ Or include it from a cdn
 ```
 
 <h2 align="center" id="usage">Usage</h2>
-Use cerbero is really simple. After installing it, enter in your code the listner.
+Use cerbero is really simple. After installation, listen for events.
 
 ```javascript
 import cerbero from "cerbero";
 
-cerbero.addEventListner((event) => {
+cerbero.addEventListener((event) => {
   JSON.stringify(event);
 });
 ```
 
 You can also set the following properties
-<table>setTimeInPageInterval
+<table>
 <thead>
    <tr>
    <td>Function</td>
