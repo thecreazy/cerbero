@@ -18,7 +18,7 @@ test('[calculateDomStructure] Testing base', () => {
 
 test('[formatNode] Testing base', () => {
   const element = window.document.body.querySelector('img');
-  expect(formatNode(element)).toEqual({ className: 'hp hq s t u hr ai ib __web-inspector-hide-shortcut__', domStructure: ' > html > body > div#container > img#soniceimage', domType: 'HTMLImageElement', id: 'soniceimage', identifier: 'img#soniceimage', name: '', position: { bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0 }, type: 'IMG' });
+  expect(formatNode(element)).toEqual({ className: 'hp hq s t u hr ai ib __web-inspector-hide-shortcut__', domStructure: ' > html > body > div#container > img#soniceimage', domType: 'HTMLImageElement', id: 'soniceimage', identifier: 'img#soniceimage', name: '', position: { bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0 }, type: 'IMG' });
 });
 
 test('[formatMemoryInfo] Testing base', () => {
