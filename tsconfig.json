@@ -5,7 +5,8 @@
       "module": "es6",
       "noImplicitAny": false,
       "outDir": "./dist",
-      "target": "es5"
+      "target": "es5",
+      "moduleResolution": "Node"
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules"]

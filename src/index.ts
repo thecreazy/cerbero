@@ -1,6 +1,8 @@
 /* istanbul ignore file */
 // @ts-ignore
 import WebWorker from 'cerbero-worker:./worker/index.ts';
+import {getCLS, getFCP, getFID, getLCP, getTTFB} from 'web-vitals'
+
 import COSTANTS from './constants';
 import { formatEvent } from './utils/formatter';
 import SelectionObserver from './utils/selectionObserver';
@@ -86,6 +88,11 @@ class Cerbero {
 
   private _initListener = () => {
     this._sendToWorker(COSTANTS.events.performance, window.performance);
+    getCLS((data) => this._sendToWorker(COSTANTS.events.webVitals, data));
+    getFCP((data) => this._sendToWorker(COSTANTS.events.webVitals, data));
+    getFID((data) => this._sendToWorker(COSTANTS.events.webVitals, data));
+    getLCP((data) => this._sendToWorker(COSTANTS.events.webVitals, data));
+    getTTFB((data) => this._sendToWorker(COSTANTS.events.webVitals, data));
     document.addEventListener('click', e => this._sendToWorker('click', e));
     window.addEventListener('mouseout', this._receiveMouseOutEvent, false);
     const _selectionObserver = new SelectionObserver(this._receiveSelectionEvent);
