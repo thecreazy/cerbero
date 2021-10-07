@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/thecreazy/cerbero/compare/v1.0.0...v1.1.0) (2021-10-07)
+
+
+### Features
+
+* **core:** add web-vitals event ([f9c06eb](https://github.com/thecreazy/cerbero/commit/f9c06ebedc1f369acf8d0e94af92ba62ba36034c))
+
 ## [1.0.0](https://github.com/thecreazy/cerbero/compare/v0.0.11...v1.0.0) (2021-01-23)
 
 ### [0.0.11](https://github.com/thecreazy/cerbero/compare/v0.0.10...v0.0.11) (2021-01-23)
