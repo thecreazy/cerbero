@@ -341,6 +341,30 @@ Example
 }
 ```
 
+**7. webVitals**
+
+```json
+{
+   "type":"webVitals",
+   "time":1633546442076,
+   "after":741,
+   "data":{
+      "name":"FCP",
+      "value":313,
+      "delta":313,
+      "entries":[
+         {
+            "name":"first-contentful-paint",
+            "entryType":"paint",
+            "startTime":313,
+            "duration":0
+         }
+      ],
+      "id":"v2-1633546441339-3230881544559"
+   }
+}
+```
+
 
 
 

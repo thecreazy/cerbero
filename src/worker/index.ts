@@ -7,6 +7,7 @@ import MouseExitService from '../services/MouseExit';
 import SelectionService from '../services/Selection';
 import ScrollService from '../services/Scroll';
 import TimeInPageService from '../services/TimeInPage';
+import WebVitalsService from '../services/WebVitalsService';
 import COSTANTS from '../constants';
 
 class MasterWorker {
@@ -19,6 +20,7 @@ class MasterWorker {
     [COSTANTS.events.selection]: SelectionService,
     [COSTANTS.events.scroll]: ScrollService,
     [COSTANTS.events.timeInPage]: TimeInPageService,
+    [COSTANTS.events.webVitals]: WebVitalsService,
   };
 
   constructor() {

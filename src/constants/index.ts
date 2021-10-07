@@ -8,6 +8,7 @@ const COSTANTS: COSTANTSDEFINITION = {
     mouseExit: 'mouseExit',
     performance: 'performance',
     click: 'click',
+    webVitals : 'webVitals',
   },
 };
 
