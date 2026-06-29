@@ -1,9 +1,29 @@
 import COSTANTS from '../../constants';
 
+interface ClickInput {
+  screenX?: number;
+  screenY?: number;
+  clientX?: number;
+  clientY?: number;
+  pageX?: number;
+  pageY?: number;
+  x?: number;
+  y?: number;
+  offsetX?: number;
+  offsetY?: number;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  metaKey?: boolean;
+  pointerType?: string;
+  target?: Record<string, unknown>;
+  startDate: number;
+}
+
 class Click {
-  static formatEvent = (event) => {
+  static formatEvent = (event: ClickInput) => {
     const now = Date.now();
-    const formatEvent = {
+    return {
       type: COSTANTS.events.click,
       time: now,
       after: now - event.startDate,
@@ -26,12 +46,12 @@ class Click {
           altKey: event.altKey,
           metaKey: event.metaKey,
         },
-        elements:{
+        pointerType: event.pointerType ?? null,
+        elements: {
           target: event.target,
         },
       },
     };
-    return formatEvent;
   }
 }
 

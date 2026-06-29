@@ -1,6 +1,6 @@
 # Cerbero Modernization Roadmap
 
-> Started: 2026-06-29 | Status: Phase 3A Complete
+> Started: 2026-06-29 | Status: Phase 3B Complete
 >
 > The project has been dormant for ~5 years. This document tracks all planned work to bring Cerbero up to date with modern browser APIs, tooling, and best practices.
 
@@ -86,12 +86,12 @@
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3B.1 | Add `PointerEvents` support | ⬜ | Replaces mouse-only listeners with `pointerdown`/`pointerup`/`pointercancel`. Adds `pointerType` field (`mouse`\|`touch`\|`pen`) to click events. Mobile tracking currently broken |
-| 3B.2 | Add `IntersectionObserver` — element visibility tracking | ⬜ | New event type: `elementVisible`. Opt-in: user passes a CSS selector or element list to observe. Fields: element identifier, `visibleRatio`, `time`, `after` |
-| 3B.3 | Add `Navigation API` support for SPAs | ⬜ | New event type: `navigation`. Fires on client-side route changes (`navigation.addEventListener('navigate', ...)`) with fallback to `popstate`/`hashchange`. Fields: `from`, `to`, `navigationType` |
-| 3B.4 | Add `navigator.sendBeacon` for page-unload flush | ⬜ | On `pagehide`/`beforeunload`, flush any queued events via `sendBeacon`. Currently in-flight data is lost on tab close |
-| 3B.5 | Add rage click detection | ⬜ | Built on top of existing click tracking. 3+ clicks within 500ms on same element = `rageClick` event. Fields: `count`, `target`, `position` |
-| 3B.6 | Add keyboard shortcut tracking | ⬜ | New event type: `keyboardShortcut`. Tracks modifier+key combos only (e.g. Ctrl+S, Cmd+K) — never raw keystrokes. Privacy-safe |
+| 3B.1 | Add `PointerEvents` support | ✅ | Replaced `click` listener with `pointerup` (PointerEvent extends MouseEvent). Added `pointerType` field (`mouse`\|`touch`\|`pen`\|`null`) to click event output. `_clickHandler` now receives `PointerEvent`. |
+| 3B.2 | Add `IntersectionObserver` — element visibility tracking | ✅ | New event type: `elementVisible`. New public method `observeElements(selector: string)` — user passes a CSS selector to opt-in. Fields: `selector`, `element`, `visibleRatio`. Graceful no-op where IntersectionObserver is unavailable. Observer disconnected in `destroy()`. |
+| 3B.3 | Add `Navigation API` support for SPAs | ✅ | New event type: `navigation`. Tries `window.navigation.addEventListener('navigate', ...)` first (Chrome 102+). Falls back to `popstate`+`hashchange` listeners. Fields: `from`, `to`, `navigationType`. All handlers removed in `destroy()`. |
+| 3B.4 | Add `pagehide` flush | ✅ | On `pagehide`, fires `pageUnload` event through the normal callback mechanism. Fields: `timeOnPage` (ms elapsed). Note: `sendBeacon` requires a server URL that Cerbero doesn't manage — the user can call `sendBeacon` from their own `pagehide` callback. |
+| 3B.5 | Add rage click detection | ✅ | Built into `_handlePointerUp`. Maintains a `_clickBuffer` (rolling 500ms window). 3+ clicks on the same target = `rageClick` event. Fields: `count`, `target`. Buffer cleared after rage detected. |
+| 3B.6 | Add keyboard shortcut tracking | ✅ | New event type: `keyboardShortcut`. `keydown` listener, fires only when at least one modifier key (Ctrl/Meta/Alt) is pressed. Never records bare keystrokes. Fields: `key`, `combo` (e.g. `ctrl+s`), `modifiers` object. |
 
 ---
 
@@ -153,3 +153,5 @@
 | 2026-06-29 | `mouseExit` elements key renamed `fromElement` → `target` | `fromElement` was non-standard (Chrome-only). Standard `event.target` is the same element. Breaking change in event payload shape. |
 | 2026-06-29 | Phase 3 split into 3A (new event types) and 3B (browser API integrations) | After deep browser API audit, identified 7 high-value new event types (environment, network, longTask, privacySignals, browserAI, slowResource, orientationChange) distinct from the platform integrations already planned |
 | 2026-06-29 | GPC auto-disable: if `navigator.globalPrivacyControl === true`, emit only `privacySignals` and stop | Legal/ethical requirement — GPC is a legally recognized opt-out signal in several jurisdictions (CCPA) |
+| 2026-06-29 | `pointerup` instead of `click` for click tracking | `PointerEvent` (which `pointerup` delivers) extends `MouseEvent` with `pointerType` — allows detecting touch/pen. Semantically equivalent for tracking purposes. |
+| 2026-06-29 | `sendBeacon` not implemented directly | Cerbero has no server URL to beacon to — architecture is callback-based. Emitting `pageUnload` lets integrators call `sendBeacon` themselves in their callback. |

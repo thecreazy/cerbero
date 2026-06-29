@@ -21,6 +21,7 @@ test('[Click Service] Testing base', () => {
         offsetY: 167,
       },
       keys: { ctrlKey: false, shiftKey: false, altKey: false, metaKey: false },
+      pointerType: null,
       elements: { target: {
         className: 'n p',
         domStructure: ' > html > body > div#root > div > article > div > section > div',
@@ -42,4 +43,14 @@ test('[Click Service] Testing base', () => {
       } },
     },
   });
+});
+
+test('[Click Service] with pointerType from touch', () => {
+  const result = Click.formatEvent({ ...event, pointerType: 'touch' });
+  expect(result.data.pointerType).toBe('touch');
+});
+
+test('[Click Service] with pointerType from pen', () => {
+  const result = Click.formatEvent({ ...event, pointerType: 'pen' });
+  expect(result.data.pointerType).toBe('pen');
 });

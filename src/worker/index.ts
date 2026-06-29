@@ -15,6 +15,11 @@ import PrivacySignalsService from '../services/PrivacySignals';
 import BrowserAIService from '../services/BrowserAI';
 import SlowResourceService from '../services/SlowResource';
 import OrientationChangeService from '../services/OrientationChange';
+import ElementVisibleService from '../services/ElementVisible';
+import NavigationService from '../services/Navigation';
+import PageUnloadService from '../services/PageUnload';
+import RageClickService from '../services/RageClick';
+import KeyboardShortcutService from '../services/KeyboardShortcut';
 import COSTANTS from '../constants';
 
 class MasterWorker {
@@ -35,6 +40,11 @@ class MasterWorker {
     [COSTANTS.events.browserAI]: BrowserAIService,
     [COSTANTS.events.slowResource]: SlowResourceService,
     [COSTANTS.events.orientationChange]: OrientationChangeService,
+    [COSTANTS.events.elementVisible]: ElementVisibleService,
+    [COSTANTS.events.navigation]: NavigationService,
+    [COSTANTS.events.pageUnload]: PageUnloadService,
+    [COSTANTS.events.rageClick]: RageClickService,
+    [COSTANTS.events.keyboardShortcut]: KeyboardShortcutService,
   };
 
   constructor() {

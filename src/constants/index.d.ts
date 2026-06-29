@@ -14,6 +14,11 @@ interface COSTANTS {
     browserAI: string;
     slowResource: string;
     orientationChange: string;
+    elementVisible: string;
+    navigation: string;
+    pageUnload: string;
+    rageClick: string;
+    keyboardShortcut: string;
   };
 
 }

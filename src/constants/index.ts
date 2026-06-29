@@ -16,6 +16,11 @@ const COSTANTS: COSTANTSDEFINITION = {
     browserAI: 'browserAI',
     slowResource: 'slowResource',
     orientationChange: 'orientationChange',
+    elementVisible: 'elementVisible',
+    navigation: 'navigation',
+    pageUnload: 'pageUnload',
+    rageClick: 'rageClick',
+    keyboardShortcut: 'keyboardShortcut',
   },
 };
 
