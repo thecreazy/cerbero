@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/thecreazy/cerbero/compare/v2.0.0...v2.0.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* **ci:** fix ci ([bc00e04](https://github.com/thecreazy/cerbero/commit/bc00e04097592b27e6676f80a331ce69fa88abf1))
+
 ## [2.0.0](https://github.com/thecreazy/cerbero/compare/v1.1.0...v2.0.0) (2026-06-29)
 
 
