@@ -22,25 +22,15 @@ test('[Click Service] Testing base', () => {
       },
       keys: { ctrlKey: false, shiftKey: false, altKey: false, metaKey: false },
       pointerType: null,
-      elements: { target: {
-        className: 'n p',
-        domStructure: ' > html > body > div#root > div > article > div > section > div',
-        domType: 'HTMLDivElement',
-        id: '',
-        identifier: 'div',
-        position:  {
-          bottom: 464.390625,
-          height: 196.390625,
-          left: 0,
-          right: 1905,
-          top: 268,
-          width: 1905,
-          x: 0,
-          y: 268,
+      elements: {
+        target: {
+          id: '',
+          type: 'DIV',
+          className: 'n p',
+          domType: 'HTMLDivElement',
+          identifier: 'div',
         },
-        textContent: 'How you can improve your workflow using the JavaScript consoleRiccardo CanellaJun 11, 2018 · 5 min read',
-        type: 'DIV',
-      } },
+      },
     },
   });
 });
@@ -53,4 +43,28 @@ test('[Click Service] with pointerType from touch', () => {
 test('[Click Service] with pointerType from pen', () => {
   const result = Click.formatEvent({ ...event, pointerType: 'pen' });
   expect(result.data.pointerType).toBe('pen');
+});
+
+test('[Click Service] with undefined target fields uses empty string fallbacks', () => {
+  const result = Click.formatEvent({ startDate: 1589180808707 });
+  expect(result.data.elements.target).toEqual({
+    id: '', type: '', className: '', domType: '', identifier: '',
+  });
+});
+
+test('[Click Service] with domPath includes domStructure in target', () => {
+  const result = Click.formatEvent({
+    ...event,
+    targetDomStructure: ' > html > body > div',
+  });
+  expect(result.data.elements.target.domStructure).toBe(' > html > body > div');
+});
+
+test('[Click Service] with domPosition includes position in target', () => {
+  const pos = { x: 0, y: 100, width: 200, height: 50, top: 100, right: 200, bottom: 150, left: 0 };
+  const result = Click.formatEvent({
+    ...event,
+    targetPosition: pos,
+  });
+  expect(result.data.elements.target.position).toEqual(pos);
 });

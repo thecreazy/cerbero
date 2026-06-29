@@ -4,7 +4,8 @@ import WebWorker from 'cerbero-worker:./worker/index.ts';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 import COSTANTS from './constants';
-import { formatEvent, FormatterOptions } from './utils/formatter';
+import { formatEvent, calculateDomStructure, FormatterOptions } from './utils/formatter';
+import { NodeStructure } from './index.d';
 import SelectionObserver from './utils/selectionObserver';
 
 interface NetworkInformation {
@@ -204,6 +205,27 @@ class Cerbero {
     this.cb = null;
   }
 
+  private _extractTargetPrimitives = (target: Element | null): Record<string, unknown> => {
+    if (!target) {
+      return { targetId: '', targetTagName: '', targetClass: '', targetDomType: '', targetIdentifier: '' };
+    }
+    const tagName = target.tagName.toLowerCase();
+    const result: Record<string, unknown> = {
+      targetId: target.id,
+      targetTagName: target.tagName,
+      targetClass: target.className,
+      targetDomType: (target.constructor as { name?: string }).name ?? '',
+      targetIdentifier: `${tagName}${target.id ? '#' + target.id : ''}`,
+    };
+    if (this._formatterOptions.domPath) {
+      result.targetDomStructure = calculateDomStructure(target as unknown as NodeStructure);
+    }
+    if (this._formatterOptions.domPosition) {
+      result.targetPosition = target.getBoundingClientRect();
+    }
+    return result;
+  }
+
   private _isEnabled = (eventType: string): boolean => {
     if (!this._config.events || this._config.events.length === 0) return true;
     return this._config.events.includes(eventType);
@@ -245,14 +267,13 @@ class Cerbero {
     }, false);
   }
 
-  private _receiveScrollEvent = (event: Event) => {
+  private _receiveScrollEvent = (_event: Event) => {
     const { body, documentElement: html } = document;
     window.clearTimeout(this.isScrolling);
     this.isScrolling = setTimeout(() => {
       const height = Math.max(body.scrollHeight, body.offsetHeight,
         html.clientHeight, html.scrollHeight, html.offsetHeight);
       this._sendToWorker(COSTANTS.events.scroll, {
-        event: formatEvent(event, this._formatterOptions),
         height,
         scroll: window.scrollY || window.pageYOffset,
       }, false);
@@ -262,13 +283,30 @@ class Cerbero {
   private _receiveMouseOutEvent = (event: MouseEvent) => {
     const to = event.relatedTarget as Element | null;
     if ((!to || to.nodeName === 'HTML') && (event.target as Element).nodeName !== 'HTML') {
-      this._sendToWorker(COSTANTS.events.mouseExit, event);
+      this._sendToWorker(COSTANTS.events.mouseExit, {
+        screenX: event.screenX, screenY: event.screenY,
+        clientX: event.clientX, clientY: event.clientY,
+        pageX: event.pageX, pageY: event.pageY,
+        x: event.x, y: event.y,
+        offsetX: event.offsetX, offsetY: event.offsetY,
+        ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey,
+        ...this._extractTargetPrimitives(event.target as Element | null),
+      }, false);
     }
   }
 
   private _handlePointerUp = (event: PointerEvent) => {
     if (this._isEnabled(COSTANTS.events.click)) {
-      this._sendToWorker(COSTANTS.events.click, event);
+      this._sendToWorker(COSTANTS.events.click, {
+        screenX: event.screenX, screenY: event.screenY,
+        clientX: event.clientX, clientY: event.clientY,
+        pageX: event.pageX, pageY: event.pageY,
+        x: event.x, y: event.y,
+        offsetX: event.offsetX, offsetY: event.offsetY,
+        ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey,
+        pointerType: event.pointerType ?? null,
+        ...this._extractTargetPrimitives(event.target as Element | null),
+      }, false);
     }
     if (this._isEnabled(COSTANTS.events.rageClick)) {
       this._checkRageClick(event);
@@ -283,7 +321,7 @@ class Cerbero {
     if (sameTargetClicks.length >= RAGE_CLICK_THRESHOLD) {
       this._sendToWorker(COSTANTS.events.rageClick, {
         count: sameTargetClicks.length,
-        target: formatEvent(event.target as object, this._formatterOptions),
+        target: this._extractTargetPrimitives(event.target as Element | null),
       }, false);
       this._clickBuffer = [];
     }

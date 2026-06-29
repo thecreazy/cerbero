@@ -1,6 +1,16 @@
 import COSTANTS from '../../constants';
 
-interface ClickInput {
+interface ClickTarget {
+  targetId?: string;
+  targetTagName?: string;
+  targetClass?: string;
+  targetDomType?: string;
+  targetIdentifier?: string;
+  targetDomStructure?: string;
+  targetPosition?: DOMRect | Record<string, unknown>;
+}
+
+interface ClickInput extends ClickTarget {
   screenX?: number;
   screenY?: number;
   clientX?: number;
@@ -15,14 +25,22 @@ interface ClickInput {
   shiftKey?: boolean;
   altKey?: boolean;
   metaKey?: boolean;
-  pointerType?: string;
-  target?: Record<string, unknown>;
+  pointerType?: string | null;
   startDate: number;
 }
 
 class Click {
   static formatEvent = (event: ClickInput) => {
     const now = Date.now();
+    const target: Record<string, unknown> = {
+      id: event.targetId ?? '',
+      type: event.targetTagName ?? '',
+      className: event.targetClass ?? '',
+      domType: event.targetDomType ?? '',
+      identifier: event.targetIdentifier ?? '',
+    };
+    if (event.targetDomStructure !== undefined) target.domStructure = event.targetDomStructure;
+    if (event.targetPosition !== undefined) target.position = event.targetPosition;
     return {
       type: COSTANTS.events.click,
       time: now,
@@ -47,9 +65,7 @@ class Click {
           metaKey: event.metaKey,
         },
         pointerType: event.pointerType ?? null,
-        elements: {
-          target: event.target,
-        },
+        elements: { target },
       },
     };
   }

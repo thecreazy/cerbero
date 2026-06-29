@@ -70,8 +70,7 @@ export const formatEvent = (e: object, options: FormatterOptions = {}): Record<s
       obj[key] = formatMemoryInfo(value as MemoryInfoLike);
     } else if (value instanceof Node) {
       obj[key] = formatNode(value as unknown as NodeStructure, options);
-    /* istanbul ignore next — window instanceof Window is untestable in jsdom */
-    } else if (value instanceof Window) {
+    } /* istanbul ignore next */ else if (value instanceof Window) {
       obj[key] = 'Window';
     } else if (!(value instanceof InputDeviceCapabilities) && typeof value !== 'function') {
       obj[key] = value;
