@@ -1,0 +1,15 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api",
+  "name": "Cerbero",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "skipErrorChecking": true,
+  "plugin": [],
+  "navigationLinks": {
+    "GitHub": "https://github.com/thecreazy/cerbero",
+    "npm": "https://npmjs.com/package/cerbero",
+    "Live Demo": "https://thecreazy.github.io/cerbero/"
+  }
+}

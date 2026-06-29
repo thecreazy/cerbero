@@ -1,6 +1,6 @@
 # Cerbero Modernization Roadmap
 
-> Started: 2026-06-29 | Status: Phase 4 Complete
+> Started: 2026-06-29 | Status: Phase 5 In Progress (5.4 npm publish pending)
 >
 > The project has been dormant for ~5 years. This document tracks all planned work to bring Cerbero up to date with modern browser APIs, tooling, and best practices.
 
@@ -115,11 +115,11 @@
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 5.1 | Update README with all new events and config options | ⬜ | Current README only documents v1.1.0 API |
-| 5.2 | Add TypeDoc for auto-generated API docs | ⬜ | Replace the hand-written table in README |
-| 5.3 | Add a live demo page | ⬜ | Update `docs/` with an interactive demo |
-| 5.4 | Publish updated version to npm | ⬜ | Coordinate with Phase 1+2 completion at minimum |
-| 5.5 | Add CONTRIBUTING.md | ⬜ | Document how to run locally, test, and submit a PR |
+| 5.1 | Update README with all new events and config options | ✅ | Complete rewrite: all 19 event types with example payloads, `CerberoConfig` table, full public API, plugin system, selective tracking, batching, breaking changes table vs v1.x. |
+| 5.2 | Add TypeDoc for auto-generated API docs | ✅ | `typedoc.json` added. `yarn docs:api` generates `docs/api/` HTML. `skipErrorChecking: true` works around `@types/node`/`Uint8Array` conflict. |
+| 5.3 | Add a live demo page | ✅ | Single-page interactive demo in `docs/index.html`. Displays live event feed for all 19 event types + all 4 plugins (fingerprint, extendedEnv, behavioral, webrtc). Deployable as GitHub Pages from `docs/`. `docs/cerbero.umd.js` built by rollup at build time. |
+| 5.4 | Publish updated version to npm | ⬜ | Run `yarn release --major` (breaking changes from v1.x), push the tag, then `npm publish`. Requires npm credentials. |
+| 5.5 | Add CONTRIBUTING.md | ✅ | `CONTRIBUTING.md` created. Covers local setup, project structure, dev workflow, test conventions (no istanbul ignores), build output table, linting, PR process, commit format, release steps. |
 
 ---
 

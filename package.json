@@ -26,7 +26,8 @@
     "prepublish": "npm run build",
     "release": "standard-version",
     "commit": "npx git-cz",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "docs:api": "typedoc"
   },
   "repository": {
     "type": "git",
@@ -62,9 +63,9 @@
     "@rollup/plugin-commonjs": "^26.0.0",
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-terser": "^0.4.0",
+    "@types/jest": "^29.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "@types/jest": "^29.0.0",
     "commitizen": "^4.1.2",
     "concurrently": "^9.0.0",
     "cz-conventional-changelog": "3.3.0",
@@ -78,6 +79,7 @@
     "rollup-plugin-typescript2": "^0.36.0",
     "standard-version": "^9.1.0",
     "ts-jest": "^29.0.0",
+    "typedoc": "^0.28.19",
     "typescript": "^5.8.0"
   },
   "config": {
@@ -87,7 +89,9 @@
   },
   "jest": {
     "rootDir": "./",
-    "setupFiles": ["./jest.setup.js"],
+    "setupFiles": [
+      "./jest.setup.js"
+    ],
     "transform": {
       ".(ts|tsx)": "ts-jest"
     },

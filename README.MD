@@ -10,374 +10,574 @@
 [![codecov][codecov]][repo-url] [![CI - Test][citest]][repo-url]
 [![GitHub license][githublicense]][license-url] [![Open Source Love svg1][opensource]][opensource-url]
 
-# 🐾 Cerbero 
+# 🐾 Cerbero
 
-Cerbero is a simple js library that gives you the ability to track everything your users are doing on your web page. Furthermore, Cerbero, is designed to weigh as little as possible on the main thread by delegating the most complex computations to a webworker.
+Cerbero is a lightweight TypeScript library for tracking user interactions in the browser. It collects **clicks, scrolls, text selections, mouse exits, time on page, performance metrics, Web Vitals, and many more signals** — and offloads all processing to a **Web Worker** so the main thread stays free.
+
+> **[→ Live Demo](https://thecreazy.github.io/cerbero/)** — see every event type and every plugin in action.
 
 ## Table of Contents
 
 1. [Install](#install)
-2. [Usage](#usage)
-3. [Contributing](#contributing)
-4. [Contributors](#contributors)
-5. [License](#license)
+2. [Quick Start](#quick-start)
+3. [Constructor Options](#constructor-options)
+4. [Public API](#public-api)
+5. [Event Reference](#event-reference)
+6. [Plugin System](#plugin-system)
+7. [Selective Tracking](#selective-tracking)
+8. [Batching](#batching)
+9. [Breaking Changes from v1.x](#breaking-changes-from-v1x)
+10. [Contributing](#contributing)
+11. [License](#license)
 
-<h2 align="center" id="install">Install</h2>
-You can download Cerbero directly from npm/yarn
+---
+
+## Install
 
 ```bash
+npm install cerbero
+# or
 yarn add cerbero
 ```
 
-Or include it from a cdn
+CDN (UMD, no bundler needed):
 
 ```html
-<script src="https://unpkg.com/cerbero@1.0.0/dist/cerbero.umd.js"></script>
+<script src="https://unpkg.com/cerbero/dist/cerbero.umd.js"></script>
+<!-- window.cerbero.Cerbero is now available -->
 ```
 
-<h2 align="center" id="usage">Usage</h2>
-Use cerbero is really simple. After installation, listen for events.
+---
 
-```javascript
-import cerbero from "cerbero";
+## Quick Start
+
+```typescript
+import { Cerbero } from 'cerbero';
+
+const cerbero = new Cerbero();
 
 cerbero.addEventListener((event) => {
-  JSON.stringify(event);
+  console.log(event.type, event.data);
 });
 ```
 
-You can also set the following properties
-<table>
-<thead>
-   <tr>
-   <td>Function</td>
-   <td>Receive</td>
-   <td>Default</td>
-   <td>Usage</td>
-   </tr>
-</thead>
-<tbody>
-    <tr>
-      <td>
-      setTimeInPageInterval(Number)
-      </td>
-      <td>
-        Number
-      </td>
-      <td>
-        2500
-      </td>
-      <td>
-        Change the interval to receive the <b>timeInPage</b> event
-      </td>
-      </tr>
-</tbody>
-</table>
+---
 
-The events received may be the following:
+## Constructor Options
 
-**1. timeInPage**
-
-Example
-```json
-{
-   "type":"timeInPage",
-   "time":1611403802219,
-   "data":{
-      "timePassed":69564
-   }
-}
+```typescript
+new Cerbero(config?: CerberoConfig)
 ```
 
-**2. selection**
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `events` | `string[]` | *(all)* | Whitelist of event types to track. Omit to track everything. |
+| `domPath` | `boolean` | `false` | Include full DOM ancestor path in serialized elements (e.g. `> html > body > div > button`). Results are cached per-element via WeakMap. |
+| `domPosition` | `boolean` | `false` | Include element bounding box via `getBoundingClientRect()`. Forces a synchronous layout reflow on every event. |
+| `batchSize` | `number` | — | Flush callback when N events have accumulated. |
+| `batchInterval` | `number` | — | Flush callback every N milliseconds. |
 
-Example
-```json
-{
-   "type":"selection",
-   "time":1611404033755,
-   "after":301101,
-   "data":{
-      "text":"These three method",
-      "elements":{
-         "anchorNode":{
-            "type":"#text",
-            "domType":"Text",
-            "identifier":"#text",
-            "domStructure":" > html > body > div#root > div > article > div > section > div > div > div#dd1f > p > mark > #text",
-            "position":{
-               
-            },
-            "data":"These three methods are ",
-            "wholeText":"These three methods are ",
-            "nodeValue":"These three methods are ",
-            "textContent":"These three methods are ",
-            "offset":0
-         },
-         "focusNode":{
-            "type":"#text",
-            "domType":"Text",
-            "identifier":"#text",
-            "domStructure":" > html > body > div#root > div > article > div > section > div > div > div#dd1f > p > mark > #text",
-            "position":{
-               
-            },
-            "data":"These three methods are ",
-            "wholeText":"These three methods are ",
-            "nodeValue":"These three methods are ",
-            "textContent":"These three methods are ",
-            "offset":18
-         },
-         "baseNode":{
-            "type":"#text",
-            "domType":"Text",
-            "identifier":"#text",
-            "domStructure":" > html > body > div#root > div > article > div > section > div > div > div#dd1f > p > mark > #text",
-            "position":{
-               
-            },
-            "data":"These three methods are ",
-            "wholeText":"These three methods are ",
-            "nodeValue":"These three methods are ",
-            "textContent":"These three methods are ",
-            "offset":0
-         },
-         "extentNode":{
-            "type":"#text",
-            "domType":"Text",
-            "identifier":"#text",
-            "domStructure":" > html > body > div#root > div > article > div > section > div > div > div#dd1f > p > mark > #text",
-            "position":{
-               
-            },
-            "data":"These three methods are ",
-            "wholeText":"These three methods are ",
-            "nodeValue":"These three methods are ",
-            "textContent":"These three methods are ",
-            "offset":18
-         }
-      }
-   }
-}
+```typescript
+const cerbero = new Cerbero({
+  events: ['click', 'scroll', 'webVitals'],
+  domPath: true,
+  batchSize: 10,
+});
 ```
 
-**3. scroll**
+---
 
-Example
-```json
-{
-   "type":"scroll",
-   "time":1611403973496,
-   "after":240842,
-   "data":{
-      "scroll":{
-         "fromTop":5608,
-         "domHeight":10693,
-         "percentage":53
-      },
-      "elements":{
-         "srcElement":{
-            "type":"#document",
-            "domType":"HTMLDocument",
-            "identifier":"#document",
-            "domStructure":" > #document",
-            "position":{
-               
-            }
-         },
-         "target":{
-            "type":"#document",
-            "domType":"HTMLDocument",
-            "identifier":"#document",
-            "domStructure":" > #document",
-            "position":{
-               
-            }
-         }
-      }
-   }
-}
+## Public API
+
+### `addEventListener(callback)`
+
+Register the callback that receives every event (or batch).
+
+```typescript
+cerbero.addEventListener((event) => {
+  // event is a single object (or unknown[] if batching is enabled)
+  sendToMyBackend(event);
+});
 ```
 
-**4. mouseExit**
+### `setTimeInPageInterval(ms)`
 
-Example
-```json
-{
-   "type":"mouseExit",
-   "time":1611403836778,
-   "after":104124,
-   "data":{
-      "position":{
-         "screenX":744,
-         "screenY":694,
-         "clientX":744,
-         "clientY":614,
-         "pageX":744,
-         "pageY":2470,
-         "x":744,
-         "y":614,
-         "offsetX":124,
-         "offsetY":239
-      },
-      "keys":{
-         "ctrlKey":false,
-         "shiftKey":false,
-         "altKey":false,
-         "metaKey":false
-      },
-      "elements":{
-         "fromElement":{
-            "id":"",
-            "name":"",
-            "className":"pb sk s t u hr ai ib",
-            "type":"IMG",
-            "domType":"HTMLImageElement",
-            "identifier":"img",
-            "domStructure":" > html > body > div#root > div > article > div > section > div > div > figure > div > div > div > div > img",
-            "position":{
-               "x":620,
-               "y":375.171875,
-               "width":680,
-               "height":661.859375,
-               "top":375.171875,
-               "right":1300,
-               "bottom":1037.03125,
-               "left":620
-            }
-         }
-      }
-   }
-}
+Change how often the `timeInPage` event fires. Default: `2500` ms.
+
+```typescript
+cerbero.setTimeInPageInterval(5000);
 ```
 
-**5. performance**
+### `observeElements(selector)`
 
-Example
-```json
-{
-   "type":"performance",
-   "time":1611403732932,
-   "data":{
-      "timing":{
-         "navigationStart":1611403731806,
-         "unloadEventStart":1611403731816,
-         "unloadEventEnd":1611403731816,
-         "redirectStart":0,
-         "redirectEnd":0,
-         "fetchStart":1611403731806,
-         "domainLookupStart":1611403731809,
-         "domainLookupEnd":1611403731809,
-         "connectStart":1611403731809,
-         "connectEnd":1611403731809,
-         "secureConnectionStart":0,
-         "requestStart":1611403731809,
-         "responseStart":1611403731812,
-         "responseEnd":1611403731885,
-         "domLoading":1611403731827,
-         "domInteractive":0,
-         "domContentLoadedEventStart":0,
-         "domContentLoadedEventEnd":0,
-         "domComplete":0,
-         "loadEventStart":0,
-         "loadEventEnd":0
-      },
-      "navigation":{
-         
-      }
-   }
-}
+Track element visibility via `IntersectionObserver`. Fires an `elementVisible` event when a matching element is ≥50% in the viewport.
+
+```typescript
+cerbero.observeElements('.hero-cta, .pricing-card');
 ```
 
-**6. click**
+### `use(plugin)`
 
-Example
-```json
-{
-   "type":"click",
-   "time":1611403891403,
-   "after":158749,
-   "data":{
-      "position":{
-         "screenX":752,
-         "screenY":244,
-         "clientX":752,
-         "clientY":164,
-         "pageX":752,
-         "pageY":3609,
-         "x":752,
-         "y":164,
-         "offsetX":388,
-         "offsetY":414
-      },
-      "keys":{
-         "ctrlKey":false,
-         "shiftKey":false,
-         "altKey":false,
-         "metaKey":false
-      },
-      "elements":{
-         "target":{
-            "id":"",
-            "name":"",
-            "className":"hp hq s t u hr ai ib",
-            "type":"IMG",
-            "domType":"HTMLImageElement",
-            "identifier":"img",
-            "domStructure":" > html > body > div#root > div > article > div > section > div > div > div > figure > div > div > div > div > img",
-            "position":{
-               "x":364,
-               "y":-249.90625,
-               "width":1192,
-               "height":626.765625,
-               "top":-249.90625,
-               "right":1556,
-               "bottom":376.859375,
-               "left":364
-            }
-         }
-      }
-   }
-}
+Register a plugin that emits custom events through the Cerbero pipeline. Returns `this` for chaining.
+
+```typescript
+import { fingerprintPlugin } from './plugins/fingerprint';
+
+cerbero.use(fingerprintPlugin());
 ```
 
-**7. webVitals**
+### `destroy()`
+
+Remove all event listeners, disconnect observers, clear intervals, and terminate the Web Worker.
+
+```typescript
+cerbero.destroy();
+```
+
+---
+
+## Event Reference
+
+All events share a base shape:
 
 ```json
 {
-   "type":"webVitals",
-   "time":1633546442076,
-   "after":741,
-   "data":{
-      "name":"FCP",
-      "value":313,
-      "delta":313,
-      "entries":[
-         {
-            "name":"first-contentful-paint",
-            "entryType":"paint",
-            "startTime":313,
-            "duration":0
-         }
-      ],
-      "id":"v2-1633546441339-3230881544559"
-   }
+  "type": "click",
+  "time": 1720000000000,
+  "after": 1234,
+  "data": { ... }
 }
 ```
 
+- `time` — Unix timestamp (ms) when the event was processed
+- `after` — ms elapsed since page load
+- `data` — event-specific payload
 
+---
 
+### `click`
 
-<h2 align="center" id="contributing">Contributing</h2>
+Fires on every pointer-up (`pointerup` event, capturing mouse, touch, and pen input).
 
-#### **Reporting bugs**
+```json
+{
+  "type": "click",
+  "data": {
+    "position": { "screenX": 752, "screenY": 244, "clientX": 752, "clientY": 164,
+                  "pageX": 752, "pageY": 3609, "x": 752, "y": 164,
+                  "offsetX": 388, "offsetY": 414 },
+    "keys": { "ctrlKey": false, "shiftKey": false, "altKey": false, "metaKey": false },
+    "pointerType": "mouse",
+    "elements": {
+      "target": { "id": "", "type": "BUTTON", "domType": "HTMLButtonElement",
+                  "identifier": "button#submit", "className": "btn-primary" }
+    }
+  }
+}
+```
 
-- Open a GitHub issue
+---
 
-#### **Contributing with patches and bug fixes**
+### `rageClick`
 
-- Open a new GitHub pull request with the patch.
-- Ensure the PR description clearly describes the problem and solution.
+Fires when the same element is clicked 3+ times within 500 ms.
+
+```json
+{
+  "type": "rageClick",
+  "data": {
+    "count": 4,
+    "target": { "identifier": "button#submit", "domType": "HTMLButtonElement" }
+  }
+}
+```
+
+---
+
+### `scroll`
+
+Fires once per scroll stop (debounced at 100 ms).
+
+```json
+{
+  "type": "scroll",
+  "data": {
+    "scroll": { "fromTop": 1240, "domHeight": 5800, "percentage": 21.37 }
+  }
+}
+```
+
+---
+
+### `mouseExit`
+
+Fires when the pointer leaves the browser window.
+
+```json
+{
+  "type": "mouseExit",
+  "data": {
+    "position": { "screenX": 744, "screenY": 0, "clientX": 744, "clientY": 0,
+                  "pageX": 744, "pageY": 820, "x": 744, "y": 0 },
+    "keys": { "ctrlKey": false, "shiftKey": false, "altKey": false, "metaKey": false },
+    "elements": {
+      "target": { "id": "hero", "type": "DIV", "domType": "HTMLDivElement", "identifier": "div#hero" }
+    }
+  }
+}
+```
+
+---
+
+### `selection`
+
+Fires when the user finishes a text selection.
+
+```json
+{
+  "type": "selection",
+  "data": {
+    "text": "the selected text string",
+    "elements": {
+      "anchorNode": { "type": "#text", "data": "full text of node", "offset": 4 },
+      "focusNode":  { "type": "#text", "data": "full text of node", "offset": 22 }
+    }
+  }
+}
+```
+
+---
+
+### `timeInPage`
+
+Fires on a repeating interval (default 2.5 s). Pauses automatically when the tab is hidden (Page Visibility API).
+
+```json
+{
+  "type": "timeInPage",
+  "data": { "timePassed": 7500 }
+}
+```
+
+---
+
+### `performance`
+
+One-shot at page load. Uses `PerformanceNavigationTiming` (via `PerformanceObserver`).
+
+```json
+{
+  "type": "performance",
+  "data": {
+    "timing": {
+      "domContentLoadedEventEnd": 312.4,
+      "loadEventEnd": 541.8,
+      "responseStart": 84.2,
+      "responseEnd": 190.1,
+      "domInteractive": 295.0
+    }
+  }
+}
+```
+
+---
+
+### `webVitals`
+
+Fires for each Core Web Vital as it becomes available: CLS, FCP, INP, LCP, TTFB.
+
+```json
+{
+  "type": "webVitals",
+  "data": {
+    "name": "LCP",
+    "value": 1842.5,
+    "rating": "good",
+    "delta": 1842.5,
+    "id": "v3-1720000000000-1234"
+  }
+}
+```
+
+---
+
+### `environment`
+
+One-shot at init. Rich device and session context.
+
+```json
+{
+  "type": "environment",
+  "data": {
+    "darkMode": true,
+    "reducedMotion": false,
+    "colorGamut": "p3",
+    "cpuCores": 10,
+    "deviceMemory": 8,
+    "devicePixelRatio": 2,
+    "screenWidth": 2560,
+    "screenHeight": 1440,
+    "viewportWidth": 1440,
+    "viewportHeight": 900,
+    "pointerType": "mouse",
+    "hasHover": true,
+    "maxTouchPoints": 0,
+    "language": "en-US",
+    "languages": ["en-US", "it-IT"],
+    "timezone": "Europe/Rome",
+    "hourCycle": "h23",
+    "referrer": "https://google.com",
+    "historyLength": 3,
+    "isIframe": false,
+    "isStandalone": false,
+    "serviceWorker": true,
+    "webAssembly": true
+  }
+}
+```
+
+---
+
+### `network`
+
+Fires at init and again on connection change. Requires `navigator.connection` (Chrome/Edge).
+
+```json
+{
+  "type": "network",
+  "data": { "effectiveType": "4g", "downlink": 10, "rtt": 50, "saveData": false }
+}
+```
+
+---
+
+### `longTask`
+
+Fires for every main-thread task exceeding 50 ms. Requires `longtask` PerformanceObserver support (Chrome/Edge).
+
+```json
+{
+  "type": "longTask",
+  "data": { "duration": 87.3, "startTime": 1234.5 }
+}
+```
+
+---
+
+### `slowResource`
+
+Fires when a network resource takes more than 1 000 ms to load.
+
+```json
+{
+  "type": "slowResource",
+  "data": {
+    "name": "https://example.com/large-image.jpg",
+    "duration": 1842,
+    "initiatorType": "img",
+    "startTime": 400.2
+  }
+}
+```
+
+---
+
+### `browserAI`
+
+One-shot detection of browser AI APIs (Chrome 127+). Never invokes the model.
+
+```json
+{
+  "type": "browserAI",
+  "data": { "hasChromeAI": true, "chromeAIModel": "readily", "hasWebNN": false }
+}
+```
+
+---
+
+### `privacySignals`
+
+Fires first, before any other listener is set up. If `gpc === true` (Global Privacy Control), Cerbero calls `destroy()` and emits no further events.
+
+```json
+{
+  "type": "privacySignals",
+  "data": { "gpc": false, "doNotTrack": false, "gpcAutoDisabled": false }
+}
+```
+
+---
+
+### `orientationChange`
+
+Fires when the screen orientation changes (mobile/tablet).
+
+```json
+{
+  "type": "orientationChange",
+  "data": { "orientationType": "landscape-primary", "angle": 90 }
+}
+```
+
+---
+
+### `elementVisible`
+
+Fires when an observed element enters the viewport (≥50% visible). Requires a call to `observeElements()`.
+
+```json
+{
+  "type": "elementVisible",
+  "data": { "selector": ".hero-cta", "visibleRatio": 0.82,
+            "element": { "identifier": "div.hero-cta", "type": "DIV" } }
+}
+```
+
+---
+
+### `navigation`
+
+Fires on SPA route changes. Uses Navigation API when available; falls back to `popstate` + `hashchange`.
+
+```json
+{
+  "type": "navigation",
+  "data": { "from": "https://example.com/home", "to": "https://example.com/about",
+            "navigationType": "push" }
+}
+```
+
+---
+
+### `pageUnload`
+
+Fires on `pagehide`. Gives you the total time-on-page before the user leaves.
+
+```json
+{
+  "type": "pageUnload",
+  "data": { "timeOnPage": 42300 }
+}
+```
+
+> Note: to send a beacon to your own server on unload, call `navigator.sendBeacon()` from your `addEventListener` callback when you receive this event.
+
+---
+
+### `keyboardShortcut`
+
+Fires only when a modifier key (Ctrl / Meta / Alt) is held. Never records bare keystrokes.
+
+```json
+{
+  "type": "keyboardShortcut",
+  "data": {
+    "key": "s",
+    "combo": "ctrl+s",
+    "ctrlKey": true, "metaKey": false, "altKey": false, "shiftKey": false
+  }
+}
+```
+
+---
+
+## Plugin System
+
+Plugins push custom events through the same worker pipeline as built-in events.
+
+```typescript
+import type { CerberoPlugin, PluginEmitter } from 'cerbero';
+
+const myPlugin = (): CerberoPlugin => ({
+  name: 'myPlugin',
+  init(emit: PluginEmitter) {
+    // emit any event type
+    emit('myEvent', { foo: 'bar' });
+
+    // optionally return a cleanup function called on destroy()
+    const timer = setInterval(() => emit('myEvent', { tick: Date.now() }), 5000);
+    return () => clearInterval(timer);
+  },
+});
+
+cerbero.use(myPlugin());
+```
+
+### Built-in opt-in plugins
+
+The library ships four ready-made grey-area plugins (opt-in — you decide whether to use them):
+
+| Plugin | Import | Emits | Description |
+|--------|--------|-------|-------------|
+| Fingerprint | `src/plugins/fingerprint` | `fingerprint` | Canvas, WebGL, and AudioContext hashes |
+| Extended Env | `src/plugins/extended-env` | `extendedEnv` | Speech voices, media device counts, storage, permissions, keyboard layout |
+| Behavioral | `src/plugins/behavioral` | `behavioralMouse`, `behavioralKeyboard` | Mouse velocity/acceleration + keystroke timing (no key values) |
+| WebRTC IP | `src/plugins/webrtc` | `webrtcIp` | Local and public IPs via RTCPeerConnection ICE candidates |
+
+```typescript
+import { fingerprintPlugin } from './src/plugins/fingerprint';
+import { extendedEnvPlugin } from './src/plugins/extended-env';
+import { behavioralPlugin }  from './src/plugins/behavioral';
+import { webrtcPlugin }      from './src/plugins/webrtc';
+
+cerbero
+  .use(fingerprintPlugin())
+  .use(extendedEnvPlugin())
+  .use(behavioralPlugin({ mouseDynamics: true, keystrokeDynamics: true, emitInterval: 5000 }))
+  .use(webrtcPlugin());
+```
+
+---
+
+## Selective Tracking
+
+Pass an `events` array to only activate the trackers you need:
+
+```typescript
+const cerbero = new Cerbero({
+  events: ['click', 'scroll', 'webVitals', 'environment'],
+});
+```
+
+`privacySignals` always runs regardless of this list — it is a legal requirement for GPC support.
+
+---
+
+## Batching
+
+Collect multiple events before flushing to your callback. Useful for `sendBeacon` or rate-limited endpoints.
+
+```typescript
+// Flush every 10 events
+const cerbero = new Cerbero({ batchSize: 10 });
+
+// Flush every 2 seconds
+const cerbero = new Cerbero({ batchInterval: 2000 });
+
+cerbero.addEventListener((events) => {
+  // events is unknown[] when batching is enabled
+  navigator.sendBeacon('/analytics', JSON.stringify(events));
+});
+```
+
+---
+
+## Breaking Changes from v1.x
+
+| Change | v1.x | v2.x |
+|--------|------|------|
+| **No singleton export** | `import cerbero from 'cerbero'` | `import { Cerbero } from 'cerbero'; const c = new Cerbero()` |
+| **`addEventListner` typo** | `cerbero.addEventListner(cb)` | `cerbero.addEventListener(cb)` (deprecated alias kept) |
+| **`mouseExit` payload key** | `data.elements.fromElement` | `data.elements.target` |
+| **`performance` timestamps** | Absolute epoch ms (`navigationStart: 1611...`) | Relative ms from navigation start (`domContentLoadedEventEnd: 312.4`) |
+| **Web Vitals** | FID | INP (Interaction to Next Paint, replacing FID in web-vitals v3+) |
+| **`scroll` payload** | Included full `elements.target` DOM node | Only `data.scroll` — no elements |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <h2 align="center" id="contributors">Contributors</h2>
 <table>
@@ -399,7 +599,7 @@ Example
   </tbody>
 </table>
 
-<h2 align="center" id="license">License</h2>
+## License
 
 [MIT][license-url]
 
