@@ -15,9 +15,35 @@ test('[calculateDomStructure] Testing base', () => {
   expect(calculateDomStructure(element)).toBe(' > html > body > div#container > img#soniceimage');
 });
 
-test('[formatNode] Testing base', () => {
+test('[calculateDomStructure] uses WeakMap cache on repeated calls', () => {
   const element = jsDomWindow.document.body.querySelector('img') as unknown as NodeStructure;
-  expect(formatNode(element)).toEqual({ className: 'hp hq s t u hr ai ib __web-inspector-hide-shortcut__', domStructure: ' > html > body > div#container > img#soniceimage', domType: 'HTMLImageElement', id: 'soniceimage', identifier: 'img#soniceimage', name: '', position: { bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0 }, type: 'IMG' });
+  const r1 = calculateDomStructure(element);
+  const r2 = calculateDomStructure(element);
+  expect(r1).toBe(r2);
+  expect(r1).toBe(' > html > body > div#container > img#soniceimage');
+});
+
+test('[formatNode] Testing base with domPath and domPosition enabled', () => {
+  const element = jsDomWindow.document.body.querySelector('img') as unknown as NodeStructure;
+  expect(formatNode(element, { domPath: true, domPosition: true })).toEqual({
+    className: 'hp hq s t u hr ai ib __web-inspector-hide-shortcut__',
+    domStructure: ' > html > body > div#container > img#soniceimage',
+    domType: 'HTMLImageElement',
+    id: 'soniceimage',
+    identifier: 'img#soniceimage',
+    name: '',
+    position: { bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0 },
+    type: 'IMG',
+  });
+});
+
+test('[formatNode] Testing base without options omits domStructure and position', () => {
+  const element = jsDomWindow.document.body.querySelector('img') as unknown as NodeStructure;
+  const result = formatNode(element);
+  expect(result.domStructure).toBeUndefined();
+  expect(result.position).toBeUndefined();
+  expect(result.id).toBe('soniceimage');
+  expect(result.domType).toBe('HTMLImageElement');
 });
 
 test('[formatMemoryInfo] Testing base', () => {
@@ -48,6 +74,18 @@ test('[formatEvent] Testing with DOM node in event', () => {
   expect(result.path).toBeNull();
 });
 
+test('[formatEvent] with domPath option passes through to formatNode', () => {
+  // Must use global document so instanceof Node passes (separate JSDOM instances have separate Node)
+  const div = document.createElement('div');
+  div.id = 'dom-path-test';
+  document.body.appendChild(div);
+  const result = formatEvent({ target: div }, { domPath: true });
+  const target = result.target as { domStructure?: string; id?: string };
+  expect(target.domStructure).toBeDefined();
+  expect(target.id).toBe('dom-path-test');
+  document.body.removeChild(div);
+});
+
 // These tests use the global jest-environment-jsdom window/document directly
 // (not the local jsDomWindow) so that instanceof Node/Window checks in formatEvent work correctly
 test('[formatEvent] with global DOM Node hits instanceof Node branch', () => {
@@ -57,7 +95,6 @@ test('[formatEvent] with global DOM Node hits instanceof Node branch', () => {
   expect(result.target).toBeDefined();
   expect(result.path).toBeNull();
 });
-
 
 test('[formatEvent] with MemoryInfo-named object hits MemoryInfo branch', () => {
   class MemoryInfo {
@@ -81,7 +118,7 @@ test('[formatNode] with empty constructor name falls back to empty string', () =
     getBoundingClientRect: null,
     parentElement: null,
   } as unknown as NodeStructure;
-  const result = formatNode(fakeNode);
+  const result = formatNode(fakeNode, { domPosition: true });
   expect(result.domType).toBe('');
   expect(result.position).toEqual({});
 });

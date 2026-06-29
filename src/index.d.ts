@@ -25,6 +25,6 @@ export interface FormattedNodeStructure {
   wholeText?: string;
   nodeValue?: string;
   textContent?: string;
-  domStructure: string;
-  position: object;
+  domStructure?: string;
+  position?: object;
 }

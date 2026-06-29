@@ -4,7 +4,7 @@ import WebWorker from 'cerbero-worker:./worker/index.ts';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 import COSTANTS from './constants';
-import { formatEvent } from './utils/formatter';
+import { formatEvent, FormatterOptions } from './utils/formatter';
 import SelectionObserver from './utils/selectionObserver';
 
 interface NetworkInformation {
@@ -62,6 +62,17 @@ export interface CerberoConfig {
   batchSize?: number;
   /** Flush callback every N milliseconds (batching). */
   batchInterval?: number;
+  /**
+   * Include full DOM ancestor path in serialized elements (e.g. " > html > body > div > button").
+   * Default: false — DOM traversal is synchronous and expensive on deep trees.
+   * Results are cached per-element via WeakMap, so repeated clicks on the same target are cheap.
+   */
+  domPath?: boolean;
+  /**
+   * Include element bounding box via getBoundingClientRect() in serialized elements.
+   * Default: false — forces a synchronous layout reflow on every event.
+   */
+  domPosition?: boolean;
 }
 
 export type PluginEmitter = (type: string, data: Record<string, unknown>) => void;
@@ -83,6 +94,7 @@ const RAGE_CLICK_THRESHOLD = 3;
 
 class Cerbero {
   private _config: CerberoConfig;
+  private _formatterOptions: FormatterOptions;
   private cerberoWorker: Worker;
   private textEncoder: TextEncoder = new TextEncoder();
   private startDate: number;
@@ -108,6 +120,10 @@ class Cerbero {
 
   constructor(config: CerberoConfig = {}) {
     this._config = config;
+    this._formatterOptions = {
+      domPath: config.domPath ?? false,
+      domPosition: config.domPosition ?? false,
+    };
     if (typeof Worker === 'undefined') return null;
     this.startDate = Date.now();
     this.cerberoWorker = new WebWorker();
@@ -142,7 +158,7 @@ class Cerbero {
       entries.filter(e => e.isIntersecting).forEach(entry => {
         this._sendToWorker(COSTANTS.events.elementVisible, {
           selector,
-          element: formatEvent(entry.target as unknown as object),
+          element: formatEvent(entry.target as unknown as object, this._formatterOptions),
           visibleRatio: entry.intersectionRatio,
         }, false);
       });
@@ -195,11 +211,12 @@ class Cerbero {
 
   private _sendToWorker = (type: string, event: object, toFormat: boolean = true) => {
     const eventData: Record<string, unknown> = toFormat
-      ? formatEvent(event)
+      ? formatEvent(event, this._formatterOptions)
       : { ...(event as Record<string, unknown>) };
     eventData.startDate = this.startDate;
     const encoded = this.textEncoder.encode(JSON.stringify(eventData));
-    this.cerberoWorker.postMessage({ type, event: encoded });
+    // Transfer the underlying ArrayBuffer (zero-copy) instead of structured-clone
+    this.cerberoWorker.postMessage({ type, event: encoded }, [encoded.buffer]);
   }
 
   private _receiveWorkerMessage = (event: MessageEvent) => {
@@ -223,19 +240,19 @@ class Cerbero {
 
   private _receiveSelectionEvent = (data: { event: Selection; text: string }) => {
     this._sendToWorker(COSTANTS.events.selection, {
-      event: formatEvent(data.event),
+      event: formatEvent(data.event, this._formatterOptions),
       selection: data.text,
     }, false);
   }
 
   private _receiveScrollEvent = (event: Event) => {
-    const { body, documentElement : html } = document;
+    const { body, documentElement: html } = document;
     window.clearTimeout(this.isScrolling);
     this.isScrolling = setTimeout(() => {
       const height = Math.max(body.scrollHeight, body.offsetHeight,
         html.clientHeight, html.scrollHeight, html.offsetHeight);
       this._sendToWorker(COSTANTS.events.scroll, {
-        event: formatEvent(event),
+        event: formatEvent(event, this._formatterOptions),
         height,
         scroll: window.scrollY || window.pageYOffset,
       }, false);
@@ -266,7 +283,7 @@ class Cerbero {
     if (sameTargetClicks.length >= RAGE_CLICK_THRESHOLD) {
       this._sendToWorker(COSTANTS.events.rageClick, {
         count: sameTargetClicks.length,
-        target: formatEvent(event.target as object),
+        target: formatEvent(event.target as object, this._formatterOptions),
       }, false);
       this._clickBuffer = [];
     }
@@ -530,13 +547,17 @@ class Cerbero {
       document.addEventListener('pointerup', this._clickHandler);
     }
     if (this._isEnabled(COSTANTS.events.mouseExit)) {
-      window.addEventListener('mouseout', this._receiveMouseOutEvent, false);
+      // passive: true — tells the browser this listener won't call preventDefault(),
+      // allowing it to optimize event delivery without waiting for JS
+      window.addEventListener('mouseout', this._receiveMouseOutEvent, { passive: true });
     }
     if (this._isEnabled(COSTANTS.events.selection)) {
       new SelectionObserver(this._receiveSelectionEvent);
     }
     if (this._isEnabled(COSTANTS.events.scroll)) {
-      window.addEventListener('scroll', this._receiveScrollEvent, false);
+      // passive: true — critical for scroll performance on mobile; without it the browser
+      // must wait for this handler before it can begin compositing the scroll
+      window.addEventListener('scroll', this._receiveScrollEvent, { passive: true });
     }
     if (this._isEnabled(COSTANTS.events.timeInPage)) {
       document.addEventListener('visibilitychange', this._handleVisibilityChange);
