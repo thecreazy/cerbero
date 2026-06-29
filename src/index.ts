@@ -55,11 +55,34 @@ interface ClickBuffer {
   time: number;
 }
 
+export interface CerberoConfig {
+  /** Whitelist of event type strings to track. Empty / omitted = all events enabled. */
+  events?: string[];
+  /** Flush callback when this many events have accumulated (batching). */
+  batchSize?: number;
+  /** Flush callback every N milliseconds (batching). */
+  batchInterval?: number;
+}
+
+export type PluginEmitter = (type: string, data: Record<string, unknown>) => void;
+
+export interface CerberoPlugin {
+  /** Unique identifier for this plugin. */
+  name: string;
+  /**
+   * Called once when the plugin is registered via `cerbero.use(plugin)`.
+   * Receives `emit` to send custom events through the Cerbero pipeline.
+   * Return a cleanup function to be called on `destroy()`.
+   */
+  init(emit: PluginEmitter): (() => void) | void;
+}
+
 const SCROLLING_TIMEOUT = 100;
 const RAGE_CLICK_WINDOW_MS = 500;
 const RAGE_CLICK_THRESHOLD = 3;
 
 class Cerbero {
+  private _config: CerberoConfig;
   private cerberoWorker: Worker;
   private textEncoder: TextEncoder = new TextEncoder();
   private startDate: number;
@@ -67,20 +90,24 @@ class Cerbero {
   private cb: ((event: unknown) => void) | null = null;
   private timeInPageIntervalTime: number = 2500;
   private timeInPageInterval: ReturnType<typeof setInterval> | null = null;
+  private _batch: unknown[] = [];
+  private _batchFlushTimer: ReturnType<typeof setInterval> | null = null;
+  private _pluginCleanups: Array<() => void> = [];
   private _clickHandler: (e: PointerEvent) => void;
   private _networkChangeHandler: (() => void) | null = null;
   private _longTaskObserver: PerformanceObserver | null = null;
   private _slowResourceObserver: PerformanceObserver | null = null;
   private _orientationChangeHandler: (() => void) | null = null;
   private _intersectionObserver: IntersectionObserver | null = null;
-  private _navigateHandler: ((e: { destination: { url: string }; navigationType: string }) => void) | null = null;
+  private _navigateHandler: ((e: NavigateEvent) => void) | null = null;
   private _popstateHandler: (() => void) | null = null;
   private _hashchangeHandler: (() => void) | null = null;
   private _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private _pagehideHandler: (() => void) | null = null;
   private _clickBuffer: ClickBuffer[] = [];
 
-  constructor() {
+  constructor(config: CerberoConfig = {}) {
+    this._config = config;
     if (typeof Worker === 'undefined') return null;
     this.startDate = Date.now();
     this.cerberoWorker = new WebWorker();
@@ -125,9 +152,18 @@ class Cerbero {
     });
   }
 
+  use = (plugin: CerberoPlugin): this => {
+    const emit: PluginEmitter = (type, data) => this._sendToWorker(type, data, false);
+    const cleanup = plugin.init(emit);
+    if (typeof cleanup === 'function') this._pluginCleanups.push(cleanup);
+    return this;
+  }
+
   destroy = () => {
     clearInterval(this.timeInPageInterval);
     if (this.isScrolling) window.clearTimeout(this.isScrolling);
+    if (this._batchFlushTimer) clearInterval(this._batchFlushTimer);
+    this._flushBatch();
     document.removeEventListener('pointerup', this._clickHandler);
     window.removeEventListener('mouseout', this._receiveMouseOutEvent);
     window.removeEventListener('scroll', this._receiveScrollEvent);
@@ -146,8 +182,15 @@ class Cerbero {
     if (this._popstateHandler) window.removeEventListener('popstate', this._popstateHandler);
     if (this._hashchangeHandler) window.removeEventListener('hashchange', this._hashchangeHandler);
     if (this._keydownHandler) document.removeEventListener('keydown', this._keydownHandler);
+    this._pluginCleanups.forEach(fn => fn());
+    this._pluginCleanups = [];
     this.cerberoWorker.terminate();
     this.cb = null;
+  }
+
+  private _isEnabled = (eventType: string): boolean => {
+    if (!this._config.events || this._config.events.length === 0) return true;
+    return this._config.events.includes(eventType);
   }
 
   private _sendToWorker = (type: string, event: object, toFormat: boolean = true) => {
@@ -160,8 +203,22 @@ class Cerbero {
   }
 
   private _receiveWorkerMessage = (event: MessageEvent) => {
-    if(!this.cb) throw new Error(`[Cerbero] no callback setted`);
-    this.cb.apply(null, [event.data]);
+    if (!this.cb) throw new Error(`[Cerbero] no callback setted`);
+
+    if (this._config.batchSize !== undefined || this._config.batchInterval !== undefined) {
+      this._batch.push(event.data);
+      if (this._config.batchSize !== undefined && this._batch.length >= this._config.batchSize) {
+        this._flushBatch();
+      }
+    } else {
+      this.cb(event.data);
+    }
+  }
+
+  private _flushBatch = () => {
+    if (!this.cb || this._batch.length === 0) return;
+    const events = this._batch.splice(0);
+    this.cb(events);
   }
 
   private _receiveSelectionEvent = (data: { event: Selection; text: string }) => {
@@ -193,8 +250,12 @@ class Cerbero {
   }
 
   private _handlePointerUp = (event: PointerEvent) => {
-    this._sendToWorker(COSTANTS.events.click, event);
-    this._checkRageClick(event);
+    if (this._isEnabled(COSTANTS.events.click)) {
+      this._sendToWorker(COSTANTS.events.click, event);
+    }
+    if (this._isEnabled(COSTANTS.events.rageClick)) {
+      this._checkRageClick(event);
+    }
   }
 
   private _checkRageClick = (event: PointerEvent) => {
@@ -249,7 +310,9 @@ class Cerbero {
     const doNotTrack = navigator.doNotTrack === '1';
     const gpcAutoDisabled = gpc === true;
 
-    this._sendToWorker(COSTANTS.events.privacySignals, { gpc, doNotTrack, gpcAutoDisabled }, false);
+    if (this._isEnabled(COSTANTS.events.privacySignals)) {
+      this._sendToWorker(COSTANTS.events.privacySignals, { gpc, doNotTrack, gpcAutoDisabled }, false);
+    }
 
     if (gpcAutoDisabled) {
       this.destroy();
@@ -385,7 +448,7 @@ class Cerbero {
   private _initNavigation = () => {
     const nav = (window as Window & { navigation?: NavigationEventTarget }).navigation;
     if (nav) {
-      this._navigateHandler = (e: { destination: { url: string }; navigationType: string }) => {
+      this._navigateHandler = (e: NavigateEvent) => {
         this._sendToWorker(COSTANTS.events.navigation, {
           from: window.location.href,
           to: e.destination.url,
@@ -441,29 +504,52 @@ class Cerbero {
 
   private _initListener = () => {
     if (!this._initPrivacySignals()) return;
-    this._initPerformance();
-    this._collectEnvironment();
-    this._initNetwork();
-    this._initLongTaskObserver();
-    this._initSlowResourceObserver();
-    this._initOrientationObserver();
-    this._collectBrowserAI();
-    this._initNavigation();
-    this._initPageUnload();
-    this._initKeyboardShortcuts();
-    onCLS(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    onFCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    onINP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    onLCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    onTTFB(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    document.addEventListener('pointerup', this._clickHandler);
-    window.addEventListener('mouseout', this._receiveMouseOutEvent, false);
-    new SelectionObserver(this._receiveSelectionEvent);
-    window.addEventListener('scroll', this._receiveScrollEvent, false);
-    document.addEventListener('visibilitychange', this._handleVisibilityChange);
+
+    if (this._isEnabled(COSTANTS.events.performance)) this._initPerformance();
+    if (this._isEnabled(COSTANTS.events.environment)) this._collectEnvironment();
+    if (this._isEnabled(COSTANTS.events.network)) this._initNetwork();
+    if (this._isEnabled(COSTANTS.events.longTask)) this._initLongTaskObserver();
+    if (this._isEnabled(COSTANTS.events.slowResource)) this._initSlowResourceObserver();
+    if (this._isEnabled(COSTANTS.events.orientationChange)) this._initOrientationObserver();
+    if (this._isEnabled(COSTANTS.events.browserAI)) this._collectBrowserAI();
+    if (this._isEnabled(COSTANTS.events.navigation)) this._initNavigation();
+    if (this._isEnabled(COSTANTS.events.pageUnload)) this._initPageUnload();
+    if (this._isEnabled(COSTANTS.events.keyboardShortcut)) this._initKeyboardShortcuts();
+
+    if (this._isEnabled(COSTANTS.events.webVitals)) {
+      onCLS(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+      onFCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+      onINP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+      onLCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+      onTTFB(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+    }
+
+    const trackClick = this._isEnabled(COSTANTS.events.click);
+    const trackRageClick = this._isEnabled(COSTANTS.events.rageClick);
+    if (trackClick || trackRageClick) {
+      document.addEventListener('pointerup', this._clickHandler);
+    }
+    if (this._isEnabled(COSTANTS.events.mouseExit)) {
+      window.addEventListener('mouseout', this._receiveMouseOutEvent, false);
+    }
+    if (this._isEnabled(COSTANTS.events.selection)) {
+      new SelectionObserver(this._receiveSelectionEvent);
+    }
+    if (this._isEnabled(COSTANTS.events.scroll)) {
+      window.addEventListener('scroll', this._receiveScrollEvent, false);
+    }
+    if (this._isEnabled(COSTANTS.events.timeInPage)) {
+      document.addEventListener('visibilitychange', this._handleVisibilityChange);
+      this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);
+    }
+
+    if (this._config.batchInterval) {
+      this._batchFlushTimer = setInterval(this._flushBatch, this._config.batchInterval);
+    }
+
     this.cerberoWorker.onmessage = this._receiveWorkerMessage;
-    this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);
   }
 }
 
-export default new Cerbero();
+export { Cerbero };
+export default Cerbero;

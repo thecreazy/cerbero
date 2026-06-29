@@ -58,7 +58,12 @@ class MasterWorker {
     const { type, event } = data;
     const eventDecoded = JSON.parse(this.textDecoder.decode(event));
     let formatted: FormattedMessageStructure;
-    if(this.formatters[type]) formatted = this.formatters[type].formatEvent(eventDecoded);
+    if (this.formatters[type]) {
+      formatted = this.formatters[type].formatEvent(eventDecoded);
+    } else {
+      // passthrough for plugin-registered event types
+      formatted = { type, ...eventDecoded };
+    }
     if(formatted) postMessage(formatted, null);
   }
 }

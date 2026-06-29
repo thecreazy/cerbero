@@ -4,7 +4,15 @@
   "description": "Tracking your users interations ",
   "main": "dist/cerbero.js",
   "module": "dist/cerbero.esm.js",
+  "module:bundler": "dist/cerbero.esm-bundler.js",
   "browser": "dist/cerbero.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/cerbero.esm.js",
+      "require": "./dist/cerbero.js",
+      "browser": "./dist/cerbero.umd.js"
+    }
+  },
   "directories": {
     "doc": "docs"
   },

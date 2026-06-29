@@ -88,6 +88,25 @@ const plugins = [
   terser(),
 ];
 
+// ESM bundler build: no minification so downstream bundlers can tree-shake
+const pluginsEsmBundler = [
+  cerberoWorkerPlugin(),
+  typescript({
+    typescript: ts,
+    tsconfig: './tsconfig.json',
+    check: false,
+    tsconfigOverride: {
+      compilerOptions: { declaration: false, declarationDir: null },
+    },
+  }),
+  resolve(),
+  babel({
+    exclude: 'node_modules/**',
+    babelHelpers: 'bundled',
+  }),
+  commonjs(),
+];
+
 export default [
   {
     input: 'src/index.ts',
@@ -96,11 +115,13 @@ export default [
         name: 'cerbero',
         file: pkg.browser,
         format: 'umd',
+        exports: 'named',
       },
       {
         name: 'cerbero',
         file: './docs/cerbero.umd.js',
         format: 'umd',
+        exports: 'named',
       },
     ],
     plugins,
@@ -128,5 +149,18 @@ export default [
       },
     ],
     plugins,
+  },
+  {
+    input: 'src/index.ts',
+    external: ['ms'],
+    output: [
+      {
+        file: pkg['module:bundler'] || 'dist/cerbero.esm-bundler.js',
+        format: 'es',
+        exports: 'named',
+        sourcemap: true,
+      },
+    ],
+    plugins: pluginsEsmBundler,
   },
 ];

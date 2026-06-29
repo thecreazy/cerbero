@@ -1,6 +1,6 @@
 # Cerbero Modernization Roadmap
 
-> Started: 2026-06-29 | Status: Phase 3B Complete
+> Started: 2026-06-29 | Status: Phase 4 Complete
 >
 > The project has been dormant for ~5 years. This document tracks all planned work to bring Cerbero up to date with modern browser APIs, tooling, and best practices.
 
@@ -101,13 +101,13 @@
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 4.1 | Allow selective event tracking via config | ⬜ | `new Cerbero({ events: ['click', 'scroll'] })`. Currently all events are always enabled |
-| 4.2 | Remove singleton export, allow multiple instances | ⬜ | `export default new Cerbero()` prevents multiple isolated instances on the same page |
-| 4.3 | Add tree-shakeable named exports per tracker | ⬜ | `import { ClickTracker } from 'cerbero'` — let bundlers drop what's unused |
-| 4.4 | Add plugin system | ⬜ | Allow third-party trackers to hook into the event pipeline without modifying the library |
-| 4.5 | Strict TypeScript types throughout | ⬜ | Remove all `any` and `@ts-ignore`. Add proper generic types for the callback payload |
-| 4.6 | Add `esm-bundler` output format | ⬜ | Modern bundlers benefit from a non-minified ESM build with pure annotations |
-| 4.7 | Add event batching / debounce config | ⬜ | Currently each event fires the callback individually. Batching reduces callback overhead |
+| 4.1 | Allow selective event tracking via config | ✅ | `new Cerbero({ events: ['click', 'scroll'] })`. Private `_isEnabled(type)` guards every listener setup. GPC check always runs regardless of config (legal requirement). |
+| 4.2 | Remove singleton export, allow multiple instances | ✅ | `export default Cerbero` (class, not instance). **Breaking**: existing users must change `import cerbero from 'cerbero'; cerbero.addEventListener(cb)` → `const c = new Cerbero(); c.addEventListener(cb)`. |
+| 4.3 | Add tree-shakeable named exports per tracker | ✅ | `export { Cerbero }` added. `CerberoConfig`, `CerberoPlugin`, `PluginEmitter` exported as named types. Per-feature tree-shaking requires v3.0 worker refactor (future work). |
+| 4.4 | Add plugin system | ✅ | `cerbero.use(plugin)` — plugin receives `emit(type, data)` function to push custom events through the worker pipeline. Worker passthrough added for unknown event types. Cleanup functions called on `destroy()`. |
+| 4.5 | Strict TypeScript types throughout | ✅ | Done in previous session — 0 `@typescript-eslint/no-explicit-any` warnings. All interfaces explicitly typed. |
+| 4.6 | Add `esm-bundler` output format | ✅ | New rollup output: `dist/cerbero.esm-bundler.js` (ESM, no minification, sourcemap). Added `"module:bundler"` field in `package.json`. Added `"exports"` field for Node.js/bundler resolution. |
+| 4.7 | Add event batching / debounce config | ✅ | `new Cerbero({ batchSize: 10 })` — flush when N events accumulated. `new Cerbero({ batchInterval: 2000 })` — flush every N ms. Remaining batch flushed on `destroy()`. With batching enabled, callback receives `unknown[]` array instead of single event. |
 
 ---
 
@@ -155,3 +155,6 @@
 | 2026-06-29 | GPC auto-disable: if `navigator.globalPrivacyControl === true`, emit only `privacySignals` and stop | Legal/ethical requirement — GPC is a legally recognized opt-out signal in several jurisdictions (CCPA) |
 | 2026-06-29 | `pointerup` instead of `click` for click tracking | `PointerEvent` (which `pointerup` delivers) extends `MouseEvent` with `pointerType` — allows detecting touch/pen. Semantically equivalent for tracking purposes. |
 | 2026-06-29 | `sendBeacon` not implemented directly | Cerbero has no server URL to beacon to — architecture is callback-based. Emitting `pageUnload` lets integrators call `sendBeacon` themselves in their callback. |
+| 2026-06-29 | Singleton removed in Phase 4.2 | `export default Cerbero` (class) is a breaking change. Multiple instances per page are now possible. Coordinated with 4.1 (config) since config is passed to constructor. |
+| 2026-06-29 | Plugin worker passthrough | Plugins emit custom event types. The worker has no formatter for them, so a passthrough was added: unknown types are forwarded as `{ type, ...data }` without transformation. |
+| 2026-06-29 | ESM bundler format adds `exports` field | The `exports` field takes precedence over `main`/`module` in Node 12+ and modern bundlers. Tested for compatibility before adding. |
