@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/thecreazy/cerbero/compare/v1.1.0...v2.0.0) (2026-06-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** changed the way the serialization is done
+
+### Features
+
+* **deps:** updated to latest deps ([a9dfd51](https://github.com/thecreazy/cerbero/commit/a9dfd51504adc5f2e55a986137683cc5ee160173))
+* **plugin:** added behavioral extended-env fingerprint and webrtc plugins ([61f353e](https://github.com/thecreazy/cerbero/commit/61f353e9780088b6c052113dc1eec568774f2d10))
+* **revamp:** API and architecture improvements ([e14c7f7](https://github.com/thecreazy/cerbero/commit/e14c7f7715ad954d4003152e921cb7d958f52c0b))
+* **revamp:** Bug fixes and deprecation removals ([b267781](https://github.com/thecreazy/cerbero/commit/b267781e4b83ff265313f25f27f0dd78f45dd957))
+* **revamp:** New browser API integrations ([b55ed94](https://github.com/thecreazy/cerbero/commit/b55ed94d11a4157fe2e28a1e1d591a67218151e8))
+* **revamp:** New event types ([e0f1df4](https://github.com/thecreazy/cerbero/commit/e0f1df4b413c279d34d3299856a9b095f0ef75c9))
+
+
+* **core:** moved logic to serialize the dom ([d01e119](https://github.com/thecreazy/cerbero/commit/d01e1198cf9c22c0c9ebf1fb8bcee22149de30a9))
+
 ## [1.1.0](https://github.com/thecreazy/cerbero/compare/v1.0.0...v1.1.0) (2021-10-07)
 
 
