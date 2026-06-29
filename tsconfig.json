@@ -8,7 +8,8 @@
     "target": "es2017",
     "moduleResolution": "Node",
     "lib": ["es2017", "dom"],
-    "strict": false
+    "strict": false,
+    "esModuleInterop": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.spec.ts"]

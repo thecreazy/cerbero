@@ -106,6 +106,39 @@ test('[formatEvent] with MemoryInfo-named object hits MemoryInfo branch', () => 
   expect(result.memory).toEqual({ totalJSHeapSize: 10, usedJSHeapSize: 100, jsHeapSizeLimit: 1000 });
 });
 
+test('[formatEvent] with Window-named constructor serializes to "Window"', () => {
+  class Window {}
+  const result = formatEvent({ view: new Window() });
+  expect(result.view).toBe('Window');
+});
+
+test('[formatEvent] with falsy property values (null, 0, false) passes them through', () => {
+  const result = formatEvent({ a: null, b: 0, c: false });
+  expect(result.a).toBeNull();
+  expect(result.b).toBe(0);
+  expect(result.c).toBe(false);
+});
+
+test('[formatEvent] with null-prototype object covers constructor?.name optional-chain branch', () => {
+  // Object.create(null) has no prototype → .constructor is undefined → ?. short-circuits
+  const noProto = Object.create(null) as Record<string, unknown>;
+  noProto.tag = 'custom';
+  const result = formatEvent({ widget: noProto });
+  // noProto is truthy, not a Node, not Window — passes through the final else branch
+  expect(result.widget).toBe(noProto);
+});
+
+test('[formatEvent] uses window.InputDeviceCapabilities when available and excludes instances', () => {
+  class InputDeviceCapabilities {}
+  (window as unknown as Record<string, unknown>).InputDeviceCapabilities = InputDeviceCapabilities;
+  const instance = new InputDeviceCapabilities();
+  const result = formatEvent({ idc: instance, other: 'hello' });
+  // InputDeviceCapabilities instances are excluded
+  expect(result.idc).toBeUndefined();
+  expect(result.other).toBe('hello');
+  delete (window as unknown as Record<string, unknown>).InputDeviceCapabilities;
+});
+
 test('[formatNode] with empty constructor name falls back to empty string', () => {
   const anonConstructor = function() {};
   Object.defineProperty(anonConstructor, 'name', { value: '' });
