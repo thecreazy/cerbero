@@ -1,6 +1,6 @@
 # Cerbero Modernization Roadmap
 
-> Started: 2026-06-29 | Status: Planning
+> Started: 2026-06-29 | Status: Phase 1 Complete
 >
 > The project has been dormant for ~5 years. This document tracks all planned work to bring Cerbero up to date with modern browser APIs, tooling, and best practices.
 
@@ -24,16 +24,16 @@
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1.1 | Migrate from `tslint` to `ESLint` + `@typescript-eslint` | ⬜ | `tslint` has been deprecated since 2019 |
-| 1.2 | Update `rollup` from v2 to v4 | ⬜ | Plugin imports change: `rollup-plugin-*` → `@rollup/plugin-*` |
-| 1.3 | Update `rollup-plugin-web-worker-loader` or find replacement | ⬜ | May need to switch to `rollup-plugin-web-worker` |
-| 1.4 | Update `typescript` from v3 to v5 | ⬜ | Many improvements to strict typing; check for breaking changes in tsconfig |
-| 1.5 | Update `jest` from v26 to v29 + `ts-jest` | ⬜ | jsdom config moved to `testEnvironment` options |
-| 1.6 | Update `husky` from v7 to v9 | ⬜ | Config moves from `package.json` to `.husky/` hooks files |
-| 1.7 | Update `@babel/core` from v7 to v8 | ⬜ | Check for breaking presets |
-| 1.8 | Update `concurrently`, `http-server`, `standard-version` | ⬜ | Minor updates, low risk |
-| 1.9 | Update GitHub Actions CI to Node 20+ | ⬜ | Current actions use very old Node versions |
-| 1.10 | Update `tsconfig.json` target from `es5` to `es2017` | ⬜ | Allows async/await natively, reduces polyfill noise |
+| 1.1 | Migrate from `tslint` to `ESLint` + `@typescript-eslint` | ✅ | Used ESLint 8 + `@typescript-eslint/parser` v7. `tslint.json` deleted. `.eslintrc.js` created mirroring original rules. `ban-types` disabled (Phase 4 concern). |
+| 1.2 | Update `rollup` from v2 to v4 | ✅ | Migrated all `rollup-plugin-*` → `@rollup/plugin-*`. Build produces all 3 outputs. |
+| 1.3 | Update `rollup-plugin-web-worker-loader` or find replacement | ✅ | Plugin is incompatible with Rollup 4. Replaced with a custom inline plugin in `rollup.config.js` that builds the worker via nested `rollup()` call and inlines it as a Blob URL. No changes to `src/`. |
+| 1.4 | Update `typescript` from v3 to v5 | ✅ | Updated to v5.8. Required adding `as unknown as NodeStructure` cast in `formatter.ts` and `index.test.ts` (TS5 is stricter about DOM types). Moved from `dependencies` to `devDependencies`. |
+| 1.5 | Update `jest` from v26 to v29 + `ts-jest` | ✅ | Updated to v29. Added `jest-environment-jsdom` (separate package in v29). Added `jest.setup.js` to polyfill `TextEncoder`/`TextDecoder` for jsdom v24 compatibility. Added 2 tests to keep branch coverage above 65% (Jest 29 counts branches more precisely). |
+| 1.6 | Update `husky` from v7 to v9 | ✅ | Removed `"husky"` key from `package.json`. Added `"prepare": "husky"` script. Created `.husky/pre-commit`. |
+| 1.7 | Update `@babel/core` and presets | ✅ | Updated `@babel/core`, `@babel/preset-env`, `@babel/plugin-*` all to `^7.25.0`. Kept v7 (v8 too risky). Added `babelHelpers: 'bundled'` to `@rollup/plugin-babel` (required in v6). |
+| 1.8 | Update `concurrently`, `http-server`, `standard-version` | ✅ | `concurrently` → v9, `http-server` → v14, `standard-version` kept at v9. |
+| 1.9 | Update GitHub Actions CI to Node 20+ | ✅ | All 3 workflow files updated: Node 12/13 → 20, `actions/checkout@v2` → v4, `actions/setup-node@v1` → v4, `codecov/codecov-action@v1` → v4. |
+| 1.10 | Update `tsconfig.json` target from `es5` to `es2017` | ✅ | `target: es2017`, `module: es2020`, added `lib: ["es2017", "dom"]`, `strict: false`. Also excluded test files from build tsconfig (they were being type-checked by rollup). |
 
 ---
 

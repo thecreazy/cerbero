@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-// @ts-ignore
+// @ts-expect-error — custom rollup plugin resolves this import at build time
 import WebWorker from 'cerbero-worker:./worker/index.ts';
 import { getCLS, getFCP, getFID, getLCP, getTTFB } from 'web-vitals';
 
@@ -13,7 +13,7 @@ class Cerbero {
   private textEncoder: TextEncoder = new TextEncoder();
   private startDate: number;
   private isScrolling: any;
-  private cb: Function;
+  private cb: ((event: unknown) => void) | null = null;
   private timeInPageIntervalTime: number = 2500;
   private timeInPageInterval: any;
 
@@ -29,7 +29,7 @@ class Cerbero {
     this._initListener();
   }
 
-  addEventListner = (cb: Function) => {
+  addEventListner = (cb: (event: unknown) => void) => {
     this.cb = cb;
   }
 
@@ -95,7 +95,7 @@ class Cerbero {
     getTTFB(data => this._sendToWorker(COSTANTS.events.webVitals, data));
     document.addEventListener('click', e => this._sendToWorker('click', e));
     window.addEventListener('mouseout', this._receiveMouseOutEvent, false);
-    const _selectionObserver = new SelectionObserver(this._receiveSelectionEvent);
+    new SelectionObserver(this._receiveSelectionEvent);
     window.addEventListener('scroll', this._receiveScrollEvent, false);
     this.cerberoWorker.onmessage = this._receiveWorkerMessage;
     this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);

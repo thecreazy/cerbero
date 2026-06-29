@@ -39,4 +39,4 @@ class MasterWorker {
   }
 }
 
-const masterWorker = new MasterWorker();
+new MasterWorker();

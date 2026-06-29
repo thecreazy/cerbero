@@ -6,7 +6,7 @@ export interface NodeStructure {
   nodeName: string;
   className: string;
   identifier: string;
-  getBoundingClientRect: Function;
+  getBoundingClientRect: (() => DOMRect | Record<string, unknown>) | null;
   parentElement: NodeStructure;
   data: string;
   wholeText: string;

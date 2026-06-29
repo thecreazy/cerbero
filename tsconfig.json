@@ -1,13 +1,15 @@
 {
-    "compilerOptions": {
-      "declaration": true,
-      "declarationDir": "./dist/declaration",
-      "module": "es6",
-      "noImplicitAny": false,
-      "outDir": "./dist",
-      "target": "es5",
-      "moduleResolution": "Node"
-    },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules"]
-  }
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist/declaration",
+    "module": "es2020",
+    "noImplicitAny": false,
+    "outDir": "./dist",
+    "target": "es2017",
+    "moduleResolution": "Node",
+    "lib": ["es2017", "dom"],
+    "strict": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.spec.ts"]
+}
