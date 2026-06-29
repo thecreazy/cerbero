@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 export interface NodeStructure {
-  constructor: any;
+  constructor: { name: string };
   name: string;
   id: string;
   nodeName: string;

@@ -7,16 +7,54 @@ import COSTANTS from './constants';
 import { formatEvent } from './utils/formatter';
 import SelectionObserver from './utils/selectionObserver';
 
+interface NetworkInformation {
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
+  saveData: boolean;
+  addEventListener(type: string, listener: () => void): void;
+  removeEventListener(type: string, listener: () => void): void;
+}
+
+interface NavigatorExtended extends Navigator {
+  connection?: NetworkInformation;
+  deviceMemory?: number;
+  userAgentData?: {
+    mobile: boolean;
+    platform: string;
+    brands: Array<{ brand: string; version: string }>;
+  };
+  globalPrivacyControl?: boolean;
+  ml?: unknown;
+}
+
+interface ChromeAICapabilities {
+  available: string;
+}
+
+interface ChromeAILanguageModel {
+  capabilities(): Promise<ChromeAICapabilities>;
+}
+
+interface ChromeAI {
+  languageModel?: ChromeAILanguageModel;
+}
+
 const SCROLLING_TIMEOUT = 100;
+
 class Cerbero {
   private cerberoWorker: Worker;
   private textEncoder: TextEncoder = new TextEncoder();
   private startDate: number;
-  private isScrolling: any;
+  private isScrolling: ReturnType<typeof setTimeout> | null = null;
   private cb: ((event: unknown) => void) | null = null;
   private timeInPageIntervalTime: number = 2500;
-  private timeInPageInterval: any;
+  private timeInPageInterval: ReturnType<typeof setInterval> | null = null;
   private _clickHandler: (e: MouseEvent) => void;
+  private _networkChangeHandler: (() => void) | null = null;
+  private _longTaskObserver: PerformanceObserver | null = null;
+  private _slowResourceObserver: PerformanceObserver | null = null;
+  private _orientationChangeHandler: (() => void) | null = null;
 
   constructor() {
     if (typeof Worker === 'undefined') return null;
@@ -53,30 +91,39 @@ class Cerbero {
     window.removeEventListener('mouseout', this._receiveMouseOutEvent);
     window.removeEventListener('scroll', this._receiveScrollEvent);
     document.removeEventListener('visibilitychange', this._handleVisibilityChange);
+    const conn = (navigator as NavigatorExtended).connection;
+    if (conn && this._networkChangeHandler) conn.removeEventListener('change', this._networkChangeHandler);
+    this._longTaskObserver?.disconnect();
+    this._slowResourceObserver?.disconnect();
+    if (screen.orientation && this._orientationChangeHandler) {
+      screen.orientation.removeEventListener('change', this._orientationChangeHandler);
+    }
     this.cerberoWorker.terminate();
     this.cb = null;
   }
 
-  private _sendToWorker = (type: string, event: any, toFormat: boolean = true) => {
-    let finalEvent = toFormat ? formatEvent(event) : event;
-    finalEvent.startDate = this.startDate;
-    finalEvent = this.textEncoder.encode(JSON.stringify(finalEvent));
-    this.cerberoWorker.postMessage({ type, event: finalEvent });
+  private _sendToWorker = (type: string, event: object, toFormat: boolean = true) => {
+    const eventData: Record<string, unknown> = toFormat
+      ? formatEvent(event)
+      : { ...(event as Record<string, unknown>) };
+    eventData.startDate = this.startDate;
+    const encoded = this.textEncoder.encode(JSON.stringify(eventData));
+    this.cerberoWorker.postMessage({ type, event: encoded });
   }
 
-  private _receiveWorkerMessage = (event: any) => {
+  private _receiveWorkerMessage = (event: MessageEvent) => {
     if(!this.cb) throw new Error(`[Cerbero] no callback setted`);
     this.cb.apply(null, [event.data]);
   }
 
-  private _receiveSelectionEvent = (data: any) => {
+  private _receiveSelectionEvent = (data: { event: Selection; text: string }) => {
     this._sendToWorker(COSTANTS.events.selection, {
       event: formatEvent(data.event),
       selection: data.text,
     }, false);
   }
 
-  private _receiveScrollEvent = (event: any) => {
+  private _receiveScrollEvent = (event: Event) => {
     const { body, documentElement : html } = document;
     window.clearTimeout(this.isScrolling);
     this.isScrolling = setTimeout(() => {
@@ -90,7 +137,7 @@ class Cerbero {
     }, SCROLLING_TIMEOUT);
   }
 
-  private _receiveMouseOutEvent = (event: any) => {
+  private _receiveMouseOutEvent = (event: MouseEvent) => {
     const to = event.relatedTarget as Element | null;
     if ((!to || to.nodeName === 'HTML') && (event.target as Element).nodeName !== 'HTML') {
       this._sendToWorker(COSTANTS.events.mouseExit, event);
@@ -119,7 +166,6 @@ class Cerbero {
       this._sendToWorker(COSTANTS.events.performance, navEntries[0], false);
       return;
     }
-    // Entry may not be ready at init time — observe with buffered:true as fallback
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries() as PerformanceNavigationTiming[];
       if (entries.length > 0) {
@@ -130,8 +176,154 @@ class Cerbero {
     observer.observe({ type: 'navigation', buffered: true });
   }
 
+  private _initPrivacySignals = (): boolean => {
+    const nav = navigator as NavigatorExtended;
+    const gpc = nav.globalPrivacyControl ?? null;
+    const doNotTrack = navigator.doNotTrack === '1';
+    const gpcAutoDisabled = gpc === true;
+
+    this._sendToWorker(COSTANTS.events.privacySignals, { gpc, doNotTrack, gpcAutoDisabled }, false);
+
+    if (gpcAutoDisabled) {
+      this.destroy();
+      return false;
+    }
+    return true;
+  }
+
+  private _collectEnvironment = () => {
+    const dtf = Intl.DateTimeFormat().resolvedOptions();
+    const nav = navigator as NavigatorExtended;
+    const uaData = nav.userAgentData ?? null;
+
+    this._sendToWorker(COSTANTS.events.environment, {
+      darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
+      reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      highContrast: window.matchMedia('(forced-colors: active)').matches,
+      moreContrast: window.matchMedia('(prefers-contrast: more)').matches,
+      forcedColors: window.matchMedia('(forced-colors: active)').matches,
+      colorGamut: window.matchMedia('(color-gamut: p3)').matches ? 'p3'
+        : window.matchMedia('(color-gamut: srgb)').matches ? 'srgb' : 'unknown',
+      cpuCores: navigator.hardwareConcurrency ?? null,
+      deviceMemory: nav.deviceMemory ?? null,
+      devicePixelRatio: window.devicePixelRatio,
+      colorDepth: screen.colorDepth,
+      screenWidth: screen.width,
+      screenHeight: screen.height,
+      viewportWidth: window.visualViewport?.width ?? window.innerWidth,
+      viewportHeight: window.visualViewport?.height ?? window.innerHeight,
+      maxTouchPoints: navigator.maxTouchPoints,
+      pointerType: window.matchMedia('(pointer: fine)').matches ? 'mouse'
+        : window.matchMedia('(pointer: coarse)').matches ? 'touch' : 'none',
+      hasHover: window.matchMedia('(hover: hover)').matches,
+      hasAnyTouch: window.matchMedia('(any-pointer: coarse)').matches,
+      hasWebShare: 'share' in navigator,
+      referrer: document.referrer || null,
+      historyLength: window.history.length,
+      isIframe: window !== window.top,
+      isOpenedByScript: window.opener !== null,
+      isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+      visibilityAtLoad: document.visibilityState,
+      timezone: dtf.timeZone,
+      language: navigator.language,
+      languages: Array.from(navigator.languages),
+      hourCycle: (dtf as Intl.ResolvedDateTimeFormatOptions & { hourCycle?: string }).hourCycle ?? null,
+      serviceWorker: 'serviceWorker' in navigator,
+      webAssembly: typeof WebAssembly !== 'undefined',
+      ua: uaData,
+    }, false);
+  }
+
+  private _collectNetwork = () => {
+    const conn = (navigator as NavigatorExtended).connection;
+    if (!conn) return;
+    this._sendToWorker(COSTANTS.events.network, {
+      effectiveType: conn.effectiveType,
+      downlink: conn.downlink,
+      rtt: conn.rtt,
+      saveData: conn.saveData,
+    }, false);
+  }
+
+  private _initNetwork = () => {
+    const conn = (navigator as NavigatorExtended).connection;
+    if (!conn) return;
+    this._collectNetwork();
+    this._networkChangeHandler = () => this._collectNetwork();
+    conn.addEventListener('change', this._networkChangeHandler);
+  }
+
+  private _initLongTaskObserver = () => {
+    if (!PerformanceObserver.supportedEntryTypes?.includes('longtask')) return;
+    this._longTaskObserver = new PerformanceObserver((list) => {
+      list.getEntries().forEach((entry) => {
+        this._sendToWorker(COSTANTS.events.longTask, {
+          duration: entry.duration,
+          startTime: entry.startTime,
+        }, false);
+      });
+    });
+    this._longTaskObserver.observe({ type: 'longtask', buffered: true });
+  }
+
+  private _initSlowResourceObserver = () => {
+    if (!PerformanceObserver.supportedEntryTypes?.includes('resource')) return;
+    this._slowResourceObserver = new PerformanceObserver((list) => {
+      list.getEntries()
+        .filter(e => e.duration > 1000)
+        .forEach(e => {
+          this._sendToWorker(COSTANTS.events.slowResource, {
+            name: e.name,
+            duration: e.duration,
+            initiatorType: (e as PerformanceResourceTiming).initiatorType,
+            startTime: e.startTime,
+          }, false);
+        });
+    });
+    this._slowResourceObserver.observe({ type: 'resource', buffered: true });
+  }
+
+  private _initOrientationObserver = () => {
+    if (!screen.orientation) return;
+    this._orientationChangeHandler = () => {
+      this._sendToWorker(COSTANTS.events.orientationChange, {
+        orientationType: screen.orientation.type,
+        angle: screen.orientation.angle,
+      }, false);
+    };
+    screen.orientation.addEventListener('change', this._orientationChangeHandler);
+  }
+
+  private _collectBrowserAI = async () => {
+    const ai = (window as Window & { ai?: ChromeAI }).ai;
+    const hasChromeAI = ai !== undefined;
+    let chromeAIModel: string | null = null;
+
+    if (hasChromeAI && ai.languageModel) {
+      try {
+        const cap = await ai.languageModel.capabilities();
+        chromeAIModel = cap?.available ?? null;
+      } catch {
+        chromeAIModel = null;
+      }
+    }
+
+    this._sendToWorker(COSTANTS.events.browserAI, {
+      hasChromeAI,
+      chromeAIModel,
+      hasWebNN: (navigator as NavigatorExtended).ml !== undefined,
+    }, false);
+  }
+
   private _initListener = () => {
+    if (!this._initPrivacySignals()) return;
     this._initPerformance();
+    this._collectEnvironment();
+    this._initNetwork();
+    this._initLongTaskObserver();
+    this._initSlowResourceObserver();
+    this._initOrientationObserver();
+    this._collectBrowserAI();
     onCLS(data => this._sendToWorker(COSTANTS.events.webVitals, data));
     onFCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
     onINP(data => this._sendToWorker(COSTANTS.events.webVitals, data));

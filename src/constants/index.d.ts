@@ -7,6 +7,13 @@ interface COSTANTS {
     performance: string;
     click: string;
     webVitals: string;
+    environment: string;
+    network: string;
+    longTask: string;
+    privacySignals: string;
+    browserAI: string;
+    slowResource: string;
+    orientationChange: string;
   };
 
 }

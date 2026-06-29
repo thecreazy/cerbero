@@ -1,9 +1,29 @@
 import COSTANTS from '../../constants';
 
+interface SelectionNode {
+  offset?: number;
+  [key: string]: unknown;
+}
+
+interface SelectionInput {
+  event: {
+    anchorNode: SelectionNode;
+    anchorOffset: number;
+    focusNode: SelectionNode;
+    focusOffset: number;
+    baseNode: SelectionNode;
+    baseOffset: number;
+    extentNode: SelectionNode;
+    extentOffset: number;
+  };
+  selection: string;
+  startDate: number;
+}
+
 class Selection {
-  static formatEvent = (data) => {
+  static formatEvent = (data: SelectionInput) => {
     const now = Date.now();
-    const { event } : {event: any} = data;
+    const { event } = data;
     const { anchorNode, anchorOffset } = event;
     const { focusNode, focusOffset } = event;
     const { baseNode, baseOffset } = event;
@@ -12,13 +32,13 @@ class Selection {
     focusNode.offset = focusOffset;
     baseNode.offset = baseOffset;
     extentNode.offset = extentOffset;
-    const formatEvent = {
+    return {
       type: COSTANTS.events.selection,
       time: now,
       after: now - data.startDate,
       data: {
         text: data.selection,
-        elements:{
+        elements: {
           anchorNode,
           focusNode,
           baseNode,
@@ -26,9 +46,7 @@ class Selection {
         },
       },
     };
-    return formatEvent;
   }
 }
 
 export default Selection;
-

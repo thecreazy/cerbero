@@ -1,6 +1,6 @@
 # Cerbero Modernization Roadmap
 
-> Started: 2026-06-29 | Status: Phase 1 Complete
+> Started: 2026-06-29 | Status: Phase 3A Complete
 >
 > The project has been dormant for ~5 years. This document tracks all planned work to bring Cerbero up to date with modern browser APIs, tooling, and best practices.
 
@@ -52,19 +52,46 @@
 
 ---
 
-## Phase 3 — New browser API features
+## Phase 3A — New event types (environment & advanced signals)
 
-> Goal: leverage modern browser APIs that didn't exist or weren't stable when the project was first built.
+> Goal: expose rich user context that previously required separate analytics tools. All new data types discovered during a deep browser API audit (2026-06-29). Each is a new event type emitted through the existing worker pipeline.
+
+### Skipped APIs (documented for future reference)
+
+| API | Reason skipped |
+|-----|---------------|
+| Battery API | Deprecated, removed from Firefox/Safari, fingerprint risk |
+| WebGL renderer string | Known GPU fingerprinting attack surface |
+| Font enumeration (`document.fonts`) | Known fingerprinting vector |
+| High-entropy Client Hints (`getHighEntropyValues()`) | Requires async permission-like flow, invasive |
+| `IdleDetector` | Requires `idle-detection` permission prompt, limited support |
+| `prefers-reduced-data` | Chrome-only behind flag |
+| `navigator.keyboard` | Chrome/Edge only |
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Add `PointerEvents` support | ⬜ | Makes tracking work on mobile (touch) and pen input, not just mouse. Replaces pure `click`/`mouseout` listeners |
-| 3.2 | Add `IntersectionObserver` — element visibility tracking | ⬜ | New event type: `elementVisible`. Track which elements the user actually saw and for how long |
-| 3.3 | Add `Navigation API` support for SPAs | ⬜ | New event type: `navigation`. Fires on client-side route changes without a page reload |
-| 3.4 | Add `navigator.sendBeacon` for page-unload data flush | ⬜ | Currently any in-flight data is lost when the user closes the tab |
-| 3.5 | Add `IdleDetector` API | ⬜ | New event type: `userIdle` / `userActive`. Detect when user goes idle and resumes |
-| 3.6 | Add rage click detection | ⬜ | Detect 3+ rapid clicks on the same element — high-value UX signal. Built on top of existing click tracking |
-| 3.7 | Add keyboard interaction tracking | ⬜ | New event type: `keyboardInteraction` — track keyboard shortcut usage (modifier keys + key, not raw keystrokes for privacy) |
+| 3A.1 | Add `environment` event | ✅ | One-shot at init. Covers: user prefs (dark mode, reduced motion, high contrast, forced-colors, color gamut), device (CPU cores, RAM, pixel ratio, color depth), input type (touch points, pointer fine/coarse, hover), session context (referrer, history length, iframe, PWA, opened-by-script), locale (timezone, language, languages, hour cycle). `hourCycle` cast via `(dtf as any)` — missing from TS `ResolvedDateTimeFormatOptions` type |
+| 3A.2 | Add `network` event | ✅ | Snapshot via `navigator.connection` at init + fires again on `change`. Fields: `effectiveType`, `downlink`, `rtt`, `saveData`. Graceful no-op on browsers without `NetworkInformation` API. Handler stored as `_networkChangeHandler` and removed in `destroy()` |
+| 3A.3 | Add `longTask` event | ✅ | `PerformanceObserver` on `longtask` entries (>50ms main thread blocks). Fields: `duration`, `startTime`, `after`. Graceful no-op where `supportedEntryTypes` doesn't include `longtask` (Firefox). Observer disconnected in `destroy()` |
+| 3A.4 | Add `privacySignals` event | ✅ | One-shot, runs FIRST in `_initListener`. Fields: `gpc`, `doNotTrack`, `gpcAutoDisabled`. If `gpc === true`: emits event then calls `destroy()` and returns `false` to abort all further init |
+| 3A.5 | Add `browserAI` event | ✅ | Fire-and-forget async. Detects presence only — no AI invocations. Fields: `hasChromeAI` (`window.ai`), `chromeAIModel` (async capability check), `hasWebNN` (`navigator.ml`). Chrome 127+ only, graceful no-op elsewhere |
+| 3A.6 | Add `slowResource` event | ✅ | `PerformanceObserver` on `resource` entries with `duration > 1000ms`. Fields: `name` (URL), `duration`, `initiatorType`, `startTime`. Observer disconnected in `destroy()` |
+| 3A.7 | Add `orientationChange` event | ✅ | Listens to `screen.orientation change`. Fields: `type` (`portrait-primary`\|`landscape-primary`\|etc), `angle`. Guard on `screen.orientation` availability. Handler removed in `destroy()` |
+
+---
+
+## Phase 3B — New browser API integrations
+
+> Goal: deeper integration with browser platform APIs for richer interaction data.
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 3B.1 | Add `PointerEvents` support | ⬜ | Replaces mouse-only listeners with `pointerdown`/`pointerup`/`pointercancel`. Adds `pointerType` field (`mouse`\|`touch`\|`pen`) to click events. Mobile tracking currently broken |
+| 3B.2 | Add `IntersectionObserver` — element visibility tracking | ⬜ | New event type: `elementVisible`. Opt-in: user passes a CSS selector or element list to observe. Fields: element identifier, `visibleRatio`, `time`, `after` |
+| 3B.3 | Add `Navigation API` support for SPAs | ⬜ | New event type: `navigation`. Fires on client-side route changes (`navigation.addEventListener('navigate', ...)`) with fallback to `popstate`/`hashchange`. Fields: `from`, `to`, `navigationType` |
+| 3B.4 | Add `navigator.sendBeacon` for page-unload flush | ⬜ | On `pagehide`/`beforeunload`, flush any queued events via `sendBeacon`. Currently in-flight data is lost on tab close |
+| 3B.5 | Add rage click detection | ⬜ | Built on top of existing click tracking. 3+ clicks within 500ms on same element = `rageClick` event. Fields: `count`, `target`, `position` |
+| 3B.6 | Add keyboard shortcut tracking | ⬜ | New event type: `keyboardShortcut`. Tracks modifier+key combos only (e.g. Ctrl+S, Cmd+K) — never raw keystrokes. Privacy-safe |
 
 ---
 
@@ -124,3 +151,5 @@
 | 2026-06-29 | Use `any` in Performance service input type | `PerformanceNavigationTiming` is a complex DOM interface; test fixtures can't satisfy it fully without extensive mocking. Runtime data always comes from the browser API. |
 | 2026-06-29 | web-vitals v5: `getCLS/getFCP/getLCP/getTTFB` → `onCLS/onFCP/onLCP/onTTFB` | Breaking rename in v3+; v5 drops the old names entirely. `getFID` → `onINP` (metric replaced). |
 | 2026-06-29 | `mouseExit` elements key renamed `fromElement` → `target` | `fromElement` was non-standard (Chrome-only). Standard `event.target` is the same element. Breaking change in event payload shape. |
+| 2026-06-29 | Phase 3 split into 3A (new event types) and 3B (browser API integrations) | After deep browser API audit, identified 7 high-value new event types (environment, network, longTask, privacySignals, browserAI, slowResource, orientationChange) distinct from the platform integrations already planned |
+| 2026-06-29 | GPC auto-disable: if `navigator.globalPrivacyControl === true`, emit only `privacySignals` and stop | Legal/ethical requirement — GPC is a legally recognized opt-out signal in several jurisdictions (CCPA) |

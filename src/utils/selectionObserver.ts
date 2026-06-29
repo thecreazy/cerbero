@@ -3,7 +3,7 @@
 const DEFAULT_OBSERVER_TIME = 2000;
 
 type selectionDefinition = {
-  event: any;
+  event: Selection;
   text: string;
 };
 
@@ -25,7 +25,7 @@ export default class SelectionObserver {
     if(newSelection === this.selection || newSelection === '') return;
     this.selection = newSelection;
     this.cb({
-      event: window.getSelection(),
+      event: window.getSelection() as Selection,
       text: this.selection,
     });
   }

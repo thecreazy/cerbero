@@ -8,7 +8,14 @@ const COSTANTS: COSTANTSDEFINITION = {
     mouseExit: 'mouseExit',
     performance: 'performance',
     click: 'click',
-    webVitals : 'webVitals',
+    webVitals: 'webVitals',
+    environment: 'environment',
+    network: 'network',
+    longTask: 'longTask',
+    privacySignals: 'privacySignals',
+    browserAI: 'browserAI',
+    slowResource: 'slowResource',
+    orientationChange: 'orientationChange',
   },
 };
 

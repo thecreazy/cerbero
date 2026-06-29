@@ -10,7 +10,7 @@ export interface CerberoMessageStructure {
 
 export interface FormattedMessageStructure {
   type: string;
-  data: any;
+  data: unknown;
   time: number;
 }
 

@@ -8,10 +8,17 @@ import SelectionService from '../services/Selection';
 import ScrollService from '../services/Scroll';
 import TimeInPageService from '../services/TimeInPage';
 import WebVitalsService from '../services/WebVitalsService';
+import EnvironmentService from '../services/Environment';
+import NetworkService from '../services/Network';
+import LongTaskService from '../services/LongTask';
+import PrivacySignalsService from '../services/PrivacySignals';
+import BrowserAIService from '../services/BrowserAI';
+import SlowResourceService from '../services/SlowResource';
+import OrientationChangeService from '../services/OrientationChange';
 import COSTANTS from '../constants';
 
 class MasterWorker {
-  private self: any;
+  private self: EventTarget;
   private textDecoder: TextDecoder = new TextDecoder();
   private formatters = {
     [COSTANTS.events.click]: ClickService,
@@ -21,6 +28,13 @@ class MasterWorker {
     [COSTANTS.events.scroll]: ScrollService,
     [COSTANTS.events.timeInPage]: TimeInPageService,
     [COSTANTS.events.webVitals]: WebVitalsService,
+    [COSTANTS.events.environment]: EnvironmentService,
+    [COSTANTS.events.network]: NetworkService,
+    [COSTANTS.events.longTask]: LongTaskService,
+    [COSTANTS.events.privacySignals]: PrivacySignalsService,
+    [COSTANTS.events.browserAI]: BrowserAIService,
+    [COSTANTS.events.slowResource]: SlowResourceService,
+    [COSTANTS.events.orientationChange]: OrientationChangeService,
   };
 
   constructor() {

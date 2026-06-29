@@ -1,0 +1,50 @@
+export default {
+  type: 'environment',
+  time: 0,
+  data: {
+    preferences: {
+      darkMode: false,
+      reducedMotion: false,
+      highContrast: false,
+      moreContrast: false,
+      forcedColors: false,
+      colorGamut: 'srgb',
+    },
+    device: {
+      cpuCores: 8,
+      deviceMemory: 8,
+      devicePixelRatio: 2,
+      colorDepth: 24,
+      screenWidth: 1920,
+      screenHeight: 1080,
+      viewportWidth: 1440,
+      viewportHeight: 900,
+    },
+    input: {
+      maxTouchPoints: 0,
+      pointerType: 'mouse',
+      hasHover: true,
+      hasAnyTouch: false,
+      hasWebShare: false,
+    },
+    session: {
+      referrer: null,
+      historyLength: 1,
+      isIframe: false,
+      isOpenedByScript: false,
+      isStandalone: false,
+      visibilityAtLoad: 'visible',
+    },
+    locale: {
+      timezone: 'Europe/Rome',
+      language: 'it-IT',
+      languages: ['it-IT', 'en-US'],
+      hourCycle: 'h23',
+    },
+    capabilities: {
+      serviceWorker: true,
+      webAssembly: true,
+    },
+    ua: { mobile: false, platform: 'macOS', brands: [{ brand: 'Chromium', version: '127' }] },
+  },
+};

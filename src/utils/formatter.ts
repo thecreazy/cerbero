@@ -1,6 +1,13 @@
 
 import { NodeStructure, FormattedNodeStructure } from '../index.d';
 
+interface MemoryInfoLike {
+  totalJSHeapSize: number;
+  usedJSHeapSize: number;
+  jsHeapSizeLimit: number;
+  [key: string]: unknown;
+}
+
 export const getDomNode = (element: NodeStructure) => {
   const { id,nodeName } = element;
   return `${nodeName.toLowerCase()}${id? `#${id}`: ''}`;
@@ -32,26 +39,31 @@ export const formatNode = (element: NodeStructure) => {
   return formatted;
 };
 
-export const formatMemoryInfo = (element: any) => {
+export const formatMemoryInfo = (element: MemoryInfoLike) => {
   const { totalJSHeapSize, usedJSHeapSize, jsHeapSizeLimit } = element;
-  return {
-    totalJSHeapSize,
-    usedJSHeapSize,
-    jsHeapSizeLimit,
-  };
+  return { totalJSHeapSize, usedJSHeapSize, jsHeapSizeLimit };
 };
 
 
-export const formatEvent = (e: any) => {
-  const obj: any = {};
-  const { InputDeviceCapabilities = Window } = window as any;
-  for (const key in e) {
-    if(e[key] && e[key].constructor.name === 'MemoryInfo') obj[key] = formatMemoryInfo(e[key]);
-    else if (e[key] instanceof Node) obj[key] = formatNode(e[key] as unknown as NodeStructure);
+export const formatEvent = (e: object): Record<string, unknown> => {
+  const obj: Record<string, unknown> = {};
+  // InputDeviceCapabilities is a Chrome-only API absent from TS DOM types — one justified any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const InputDeviceCapabilities = (window as any).InputDeviceCapabilities ?? Window;
+  const record = e as Record<string, unknown>;
+  for (const key in record) {
+    const value = record[key];
+    if (value && (value as { constructor?: { name?: string } }).constructor?.name === 'MemoryInfo') {
+      obj[key] = formatMemoryInfo(value as MemoryInfoLike);
+    } else if (value instanceof Node) {
+      obj[key] = formatNode(value as unknown as NodeStructure);
     /* istanbul ignore next — window instanceof Window is untestable in jsdom */
-    else if (e[key] instanceof Window) obj[key] = 'Window';
-    else if (e[key] instanceof InputDeviceCapabilities === false && typeof e[key] !== 'function') obj[key] = e[key];
+    } else if (value instanceof Window) {
+      obj[key] = 'Window';
+    } else if (!(value instanceof InputDeviceCapabilities) && typeof value !== 'function') {
+      obj[key] = value;
+    }
   }
   obj['path'] = null;
-  return { ...obj };
+  return obj;
 };
