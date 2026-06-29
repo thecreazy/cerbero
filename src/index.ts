@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 // @ts-expect-error — custom rollup plugin resolves this import at build time
 import WebWorker from 'cerbero-worker:./worker/index.ts';
-import { getCLS, getFCP, getFID, getLCP, getTTFB } from 'web-vitals';
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 import COSTANTS from './constants';
 import { formatEvent } from './utils/formatter';
@@ -16,11 +16,13 @@ class Cerbero {
   private cb: ((event: unknown) => void) | null = null;
   private timeInPageIntervalTime: number = 2500;
   private timeInPageInterval: any;
+  private _clickHandler: (e: MouseEvent) => void;
 
   constructor() {
     if (typeof Worker === 'undefined') return null;
     this.startDate = Date.now();
     this.cerberoWorker = new WebWorker();
+    this._clickHandler = (e: MouseEvent) => this._sendToWorker('click', e);
     this._initListener = this._initListener.bind(this);
     this._sendToWorker = this._sendToWorker.bind(this);
     this._receiveWorkerMessage = this._receiveWorkerMessage.bind(this);
@@ -29,14 +31,30 @@ class Cerbero {
     this._initListener();
   }
 
-  addEventListner = (cb: (event: unknown) => void) => {
+  addEventListener = (cb: (event: unknown) => void) => {
     this.cb = cb;
+  }
+
+  /** @deprecated Use addEventListener() instead. Will be removed in the next major version. */
+  addEventListner = (cb: (event: unknown) => void) => {
+    this.addEventListener(cb);
   }
 
   setTimeInPageInterval = (timeInPageIntervalTime: number) => {
     this.timeInPageIntervalTime = timeInPageIntervalTime;
     clearInterval(this.timeInPageInterval);
     this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);
+  }
+
+  destroy = () => {
+    clearInterval(this.timeInPageInterval);
+    if (this.isScrolling) window.clearTimeout(this.isScrolling);
+    document.removeEventListener('click', this._clickHandler);
+    window.removeEventListener('mouseout', this._receiveMouseOutEvent);
+    window.removeEventListener('scroll', this._receiveScrollEvent);
+    document.removeEventListener('visibilitychange', this._handleVisibilityChange);
+    this.cerberoWorker.terminate();
+    this.cb = null;
   }
 
   private _sendToWorker = (type: string, event: any, toFormat: boolean = true) => {
@@ -73,8 +91,8 @@ class Cerbero {
   }
 
   private _receiveMouseOutEvent = (event: any) => {
-    const from = event.toElement;
-    if ((!from || from.nodeName === 'HTML') && event.fromElement.nodeName !== 'HTML'){
+    const to = event.relatedTarget as Element | null;
+    if ((!to || to.nodeName === 'HTML') && (event.target as Element).nodeName !== 'HTML') {
       this._sendToWorker(COSTANTS.events.mouseExit, event);
     }
   }
@@ -86,17 +104,44 @@ class Cerbero {
     });
   }
 
+  private _handleVisibilityChange = () => {
+    if (document.hidden) {
+      clearInterval(this.timeInPageInterval);
+      this.timeInPageInterval = null;
+    } else {
+      this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);
+    }
+  }
+
+  private _initPerformance = () => {
+    const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    if (navEntries.length > 0) {
+      this._sendToWorker(COSTANTS.events.performance, navEntries[0], false);
+      return;
+    }
+    // Entry may not be ready at init time — observe with buffered:true as fallback
+    const observer = new PerformanceObserver((list) => {
+      const entries = list.getEntries() as PerformanceNavigationTiming[];
+      if (entries.length > 0) {
+        this._sendToWorker(COSTANTS.events.performance, entries[0], false);
+        observer.disconnect();
+      }
+    });
+    observer.observe({ type: 'navigation', buffered: true });
+  }
+
   private _initListener = () => {
-    this._sendToWorker(COSTANTS.events.performance, window.performance);
-    getCLS(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    getFCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    getFID(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    getLCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    getTTFB(data => this._sendToWorker(COSTANTS.events.webVitals, data));
-    document.addEventListener('click', e => this._sendToWorker('click', e));
+    this._initPerformance();
+    onCLS(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+    onFCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+    onINP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+    onLCP(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+    onTTFB(data => this._sendToWorker(COSTANTS.events.webVitals, data));
+    document.addEventListener('click', this._clickHandler);
     window.addEventListener('mouseout', this._receiveMouseOutEvent, false);
     new SelectionObserver(this._receiveSelectionEvent);
     window.addEventListener('scroll', this._receiveScrollEvent, false);
+    document.addEventListener('visibilitychange', this._handleVisibilityChange);
     this.cerberoWorker.onmessage = this._receiveWorkerMessage;
     this.timeInPageInterval = setInterval(this._timeOnPage, this.timeInPageIntervalTime);
   }

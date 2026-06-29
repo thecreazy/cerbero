@@ -27,7 +27,7 @@ class MouseExit {
           metaKey: event.metaKey,
         },
         elements:{
-          fromElement: event.fromElement,
+          target: event.target,
         },
       },
     };

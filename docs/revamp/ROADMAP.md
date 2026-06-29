@@ -43,12 +43,12 @@
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Replace `window.performance.timing` with `PerformanceNavigationTiming` via `PerformanceObserver` | ⬜ | `performance.timing` is deprecated. Affects `src/services/Performance/index.ts` and `src/index.ts` |
-| 2.2 | Update `web-vitals` from v2 to v5 | ⬜ | **Breaking**: `getFID` removed, replaced by `getINP`. Update `src/index.ts` imports |
-| 2.3 | Fix `mouseExit` using non-standard `toElement`/`fromElement` | ⬜ | Replace with `event.relatedTarget` (standard). Affects `src/index.ts` `_receiveMouseOutEvent` |
-| 2.4 | Add `destroy()` public method | ⬜ | Remove all event listeners, clear intervals, terminate the worker. Currently there is no cleanup path |
-| 2.5 | Fix `timeInPage` counting time while tab is backgrounded | ⬜ | Use `Page Visibility API` (`visibilitychange`) to pause/resume the interval |
-| 2.6 | Fix typo `addEventListner` → `addEventListener` | ⬜ | **Breaking change** — must be a major version bump. Keep old name as deprecated alias for one cycle |
+| 2.1 | Replace `window.performance.timing` with `PerformanceNavigationTiming` via `PerformanceObserver` | ✅ | Added `_initPerformance()` using `performance.getEntriesByType('navigation')` with `PerformanceObserver` fallback. **Breaking**: `data.timing` and `data.navigation` shapes changed (relative ms timings instead of epoch timestamps). Performance service now uses `any` input type since browser APIs return runtime objects. |
+| 2.2 | Update `web-vitals` from v2 to v5 | ✅ | **Breaking**: In v5 all functions renamed `getCLS→onCLS`, `getFCP→onFCP`, `getLCP→onLCP`, `getTTFB→onTTFB`, `getFID→onINP`. Updated imports and usages in `src/index.ts`. |
+| 2.3 | Fix `mouseExit` using non-standard `toElement`/`fromElement` | ✅ | `_receiveMouseOutEvent` now uses `event.relatedTarget` and `event.target`. **Breaking**: `data.elements.fromElement` renamed to `data.elements.target` in mouseExit events. |
+| 2.4 | Add `destroy()` public method | ✅ | Cleans up all listeners (click, mouseout, scroll, visibilitychange), clears intervals, terminates worker. Click listener stored as named `_clickHandler` field for proper removal. |
+| 2.5 | Fix `timeInPage` counting time while tab is backgrounded | ✅ | Added `_handleVisibilityChange()` using Page Visibility API (`document.hidden`). Interval pauses on `hidden`, resumes on `visible`. |
+| 2.6 | Fix typo `addEventListner` → `addEventListener` | ✅ | New `addEventListener` method is the canonical API. Old `addEventListner` kept as `@deprecated` alias delegating to the new method. Major version bump needed before removing the alias. |
 
 ---
 
@@ -121,3 +121,6 @@
 | 2026-06-29 | Treat `addEventListner` typo fix as a major version bump | It's a public API rename — existing users would break silently |
 | 2026-06-29 | Keep Web Worker architecture | Still the right call for offloading processing from the main thread |
 | 2026-06-29 | Target `es2017` instead of `es5` | All major browsers support it; removes need for most Babel polyfills |
+| 2026-06-29 | Use `any` in Performance service input type | `PerformanceNavigationTiming` is a complex DOM interface; test fixtures can't satisfy it fully without extensive mocking. Runtime data always comes from the browser API. |
+| 2026-06-29 | web-vitals v5: `getCLS/getFCP/getLCP/getTTFB` → `onCLS/onFCP/onLCP/onTTFB` | Breaking rename in v3+; v5 drops the old names entirely. `getFID` → `onINP` (metric replaced). |
+| 2026-06-29 | `mouseExit` elements key renamed `fromElement` → `target` | `fromElement` was non-standard (Chrome-only). Standard `event.target` is the same element. Breaking change in event payload shape. |

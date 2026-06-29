@@ -1,19 +1,36 @@
 import COSTANTS from '../../constants/index';
 
 class Performance {
-  static formatEvent = (event) => {
-    const formatEvent = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static formatEvent = (event: any) => {
+    return {
       type: COSTANTS.events.performance,
       time: Date.now(),
       data: {
-        timing: event.timing,
-        navigation: event.navigation,
-        memory: event.memory,
+        navigation: {
+          type: event.type,
+          redirectCount: event.redirectCount,
+          duration: event.duration,
+        },
+        timing: {
+          fetchStart: event.fetchStart,
+          domainLookupStart: event.domainLookupStart,
+          domainLookupEnd: event.domainLookupEnd,
+          connectStart: event.connectStart,
+          connectEnd: event.connectEnd,
+          requestStart: event.requestStart,
+          responseStart: event.responseStart,
+          responseEnd: event.responseEnd,
+          domInteractive: event.domInteractive,
+          domContentLoadedEventStart: event.domContentLoadedEventStart,
+          domContentLoadedEventEnd: event.domContentLoadedEventEnd,
+          domComplete: event.domComplete,
+          loadEventStart: event.loadEventStart,
+          loadEventEnd: event.loadEventEnd,
+        },
       },
     };
-    return formatEvent;
   }
 }
 
 export default Performance;
-
